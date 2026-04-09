@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>カドスケ！管理画面</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3/tailwind.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: #1e293b;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+    }
+
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .nav-items {
+      flex: 1;
+    }
+
+    .nav-item {
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .nav-item.active {
+      background: #3b82f6;
+      border-left-color: #fbbf24;
+    }
+
+    .logout-btn {
+      background: #ef4444;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      width: 100%;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #dc2626;
+    }
+
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 30px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 30px;
+      margin-bottom: 15px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-left: 4px solid #3b82f6;
+    }
+
+    .stat-card.green { border-left-color: #10b981; }
+    .stat-card.blue { border-left-color: #3b82f6; }
+    .stat-card.orange { border-left-color: #f97316; }
+    .stat-card.red { border-left-color: #ef4444; }
+    .stat-card.purple { border-left-color: #a855f7; }
+
+    .stat-label {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #1f2937;
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 200px;
+      margin-bottom: 10px;
+    }
+
+    .chart-bar {
+      flex: 1;
+      background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      min-height: 20px;
+    }
+
+    .chart-bar:hover {
+      filter: brightness(1.1);
+    }
+
+    .chart-x-labels {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .line-chart {
+      width: 100%;
+      height: 200px;
+      margin-bottom: 10px;
+    }
+
+    .chart-tooltip {
+      position: fixed;
+      background: #1e293b;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      pointer-events: none;
+      z-index: 10000;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      white-space: nowrap;
+    }
+
+    .table-wrapper {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: #f3f4f6;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 14px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px rgba(0,0,0,0.15);
+    }
+
+    .modal-header {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .alert-success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-shipped { background: #dbeafe; color: #1e40af; }
+    .status-completed { background: #dcfce7; color: #166534; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+    .filter-bar {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .expandable-row {
+      cursor: pointer;
+    }
+
+    .expandable-row:hover {
+      background: #f9fafb;
+    }
+
+    .expand-icon {
+      display: inline-block;
+      transition: transform 0.3s;
+      width: 20px;
+      text-align: center;
+    }
+
+    .expand-icon.expanded {
+      transform: rotate(180deg);
+    }
+
+    .details-row {
+      display: none;
+    }
+
+    .details-row.show {
+      display: table-row;
+    }
+
+    .details-content {
+      padding: 20px;
+      background: #f9fafb;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="sidebar-title">カドスケ！管理画面</div>
+      <div class="nav-items">
+        <div class="nav-item active" data-tab="dashboard" onclick="app.switchTab('dashboard', this)">ダッシュボード</div>
+        <div class="nav-item" data-tab="products" onclick="app.switchTab('products', this)">商品管理</div>
+        <div class="nav-item" data-tab="exchanges" onclick="app.switchTab('exchanges', this)">交換・発送管理</div>
+        <div class="nav-item" data-tab="organizers" onclick="app.switchTab('organizers', this)">主催者申請</div>
+        <div class="nav-item" data-tab="users" onclick="app.switchTab('users', this)">ユーザー管理</div>
+        <div class="nav-item" data-tab="revenue" onclick="app.switchTab('revenue', this)">収益・広告</div>
+      </div>
+      <button class="logout-btn" onclick="app.logout()">ログアウト</button>
+    </div>
+
+    <div class="main">
+      <!-- ダッシュボード -->
+      <div id="dashboardTab" class="tab-content">
+        <div class="header">
+          <h1>ダッシュボード</h1>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="stat-grid">
+          <div class="stat-card purple">
+            <div class="stat-label">登録ユーザー数</div>
+            <div class="stat-value" id="totalUsers">0</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">今月の広告視聴</div>
+            <div class="stat-value" id="monthlyAdViews">0</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label">未対応交換</div>
+            <div class="stat-value" id="pendingExchanges">0</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">流通ポイント</div>
+            <div class="stat-value" id="totalPoints">0</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-container">
+          <div class="chart-title">ユーザー登録推移 (過去30日)</div>
+          <svg class="line-chart" id="registrationChart" viewBox="0 0 600 200">
+            <defs>
+              <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3" />
+                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0" />
+              </linearGradient>
+            </defs>
+            <polyline id="registrationLine" points="" fill="none" stroke="#3b82f6" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-title">広告視聴数推移 (過去30日)</div>
+          <div class="chart-bars" id="adViewsChart"></div>
+          <div class="chart-x-labels" id="adViewsLabels"></div>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-title">ポイント経済</div>
+          <div class="chart-bars" id="pointsChart"></div>
+          <div class="chart-x-labels" id="pointsLabels"></div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card blue">
+            <div class="stat-label">推定広告収益（月額）</div>
+            <div class="stat-value" id="estimatedRevenue">¥0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 商品管理 -->
+      <div id="productsTab" class="tab-content hidden">
+        <div class="header">
+          <h1>商品管理</h1>
+          <button class="btn btn-primary" onclick="app.showItemModal()">新規商品</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>商品名</th>
+                <th>ポイント</th>
+                <th>種別</th>
+                <th>ストック</th>
+                <th>有効</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="productsTable">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 交換・発送管理 -->
+      <div id="exchangesTab" class="tab-content hidden">
+        <div class="header">
+          <h1>交換・発送管理</h1>
+          <button class="btn btn-primary" onclick="app.exportExchangesCSV()">CSVエクスポート</button>
+        </div>
+
+        <div class="filter-bar">
+          <select id="statusFilter" onchange="app.applyExchangeFilters()">
+            <option value="">すべて</option>
+            <option value="pending">未処理</option>
+            <option value="shipped">発送済</option>
+            <option value="completed">完了</option>
+            <option value="cancelled">キャンセル</option>
+          </select>
+          <select id="sortSelect" onchange="app.applyExchangeFilters()">
+            <option value="newest">申請日(新しい順)</option>
+            <option value="oldest">申請日(古い順)</option>
+            <option value="points_high">ポイント(多い順)</option>
+            <option value="points_low">ポイント(少ない順)</option>
+          </select>
+          <input type="text" id="searchInput" placeholder="ユーザー名・商品名で検索" onkeyup="app.applyExchangeFilters()">
+        </div>
+
+        <div class="table-wrapper">
+          <table id="exchangesTable">
+            <thead>
+              <tr>
+                <th></th>
+                <th>申請日</th>
+                <th>ユーザー</th>
+                <th>商品</th>
+                <th>ポイント</th>
+                <th>ステータス</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="exchangesTableBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 主催者申請 -->
+      <div id="organizersTab" class="tab-content hidden">
+        <div class="header">
+          <h1>主催者申請</h1>
+          <span id="orgCount" style="color: #6b7280; font-size: 14px;"></span>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          <select id="orgStatusFilter" onchange="app.loadOrganizers()" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+            <option value="all">すべて</option>
+            <option value="pending">未処理のみ</option>
+            <option value="approved">承認済み</option>
+            <option value="rejected">却下済み</option>
+          </select>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ユーザー</th>
+                <th>メール</th>
+                <th>X (Twitter)</th>
+                <th>Tonamel</th>
+                <th>申請日</th>
+                <th>ステータス</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="organizersTable">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ユーザー管理 -->
+      <div id="usersTab" class="tab-content hidden">
+        <div class="header">
+          <h1>ユーザー管理</h1>
+          <span id="userCount" style="color: #6b7280; font-size: 14px;"></span>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+          <input type="text" id="userSearch" placeholder="名前・メールで検索..." oninput="app.filterAndRenderUsers()" style="flex: 1; min-width: 200px; max-width: 350px;">
+          <select id="userRoleFilter" onchange="app.filterAndRenderUsers()" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+            <option value="all">全ユーザー</option>
+            <option value="admin">管理者のみ</option>
+            <option value="organizer">主催者のみ</option>
+            <option value="premium">プレミアムのみ</option>
+            <option value="banned">BANのみ</option>
+          </select>
+          <select id="userSort" onchange="app.filterAndRenderUsers()" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+            <option value="created_desc">登録日（新しい順）</option>
+            <option value="created_asc">登録日（古い順）</option>
+            <option value="points_desc">ポイント（多い順）</option>
+            <option value="points_asc">ポイント（少ない順）</option>
+            <option value="name_asc">名前（A→Z）</option>
+          </select>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>ユーザー名</th>
+                <th>メール</th>
+                <th>ポイント</th>
+                <th>登録日</th>
+                <th>主催者</th>
+                <th>管理者</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 収益・広告 -->
+      <div id="revenueTab" class="tab-content hidden">
+        <div class="header">
+          <h1>収益・広告</h1>
+        </div>
+
+        <div id="revenueContainer">
+          <div class="alert alert-success">読み込み中...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Item Modal -->
+  <div id="itemModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">商品</div>
+      <form onsubmit="app.saveItem(event)">
+        <div class="form-group">
+          <label class="form-label">商品名</label>
+          <input type="text" id="itemName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">説明</label>
+          <textarea id="itemDescription"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ポイント</label>
+          <input type="number" id="itemPoints" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">種別</label>
+          <select id="itemType" required>
+            <option value="physical">物理</option>
+            <option value="digital">デジタル</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ストック</label>
+          <input type="number" id="itemStock">
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            <input type="checkbox" id="itemActive"> 有効
+          </label>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="submit" class="btn btn-primary">保存</button>
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('itemModal')">キャンセル</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Exchange Modal -->
+  <div id="exchangeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">交換詳細</div>
+      <div id="exchangeDetails"></div>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <select id="exchangeStatus">
+          <option value="pending">未処理</option>
+          <option value="shipped">発送済</option>
+          <option value="completed">完了</option>
+          <option value="cancelled">キャンセル</option>
+        </select>
+        <button class="btn btn-primary" onclick="app.updateExchangeStatus()">更新</button>
+        <button class="btn btn-secondary" onclick="app.closeModal('exchangeModal')">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ban Modal -->
+  <div id="banModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">ユーザーをバン</div>
+      <div class="form-group">
+        <label class="form-label">理由</label>
+        <textarea id="banReason" placeholder="バンの理由を入力..."></textarea>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-danger" onclick="app.banUser()">バン</button>
+        <button class="btn btn-secondary" onclick="app.closeModal('banModal')">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Details Modal -->
+  <div id="userDetailsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">ユーザー詳細</div>
+      <div id="userDetailsContent"></div>
+      <button class="btn btn-secondary" style="margin-top: 20px;" onclick="app.closeModal('userDetailsModal')">閉じる</button>
+    </div>
+  </div>
+
+  <div class="chart-tooltip" id="tooltip"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const db = window.supabase.createClient(
+      'https://zheiyyjsbgqywesqfzqr.supabase.co',
+      'sb_publishable_j2IOWXMCBuCogllLYAo9iA_zYseUmWZ'
+    );
+
+    const app = {
+      currentUser: null,
+      currentExchangeId: null,
+      currentUserId: null,
+      currentItemId: null,
+      currentBanUserId: null,
+      allExchanges: [],
+      filteredExchanges: [],
+
+      async init() {
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+          this.showLogin();
+          return;
+        }
+        this.currentUser = JSON.parse(token);
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById('dashboardTab').classList.remove('hidden');
+        await this.loadDashboard();
+      },
+
+      showLogin() {
+        document.body.innerHTML = `
+          <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 20px 25px rgba(0,0,0,0.15); max-width: 400px; width: 100%;">
+              <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 30px; text-align: center;">管理画面</h1>
+              <form onsubmit="app.handleLogin(event)">
+                <div style="margin-bottom: 15px;">
+                  <label style="display: block; font-weight: 600; margin-bottom: 5px;">メール</label>
+                  <input type="email" id="loginEmail" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                  <label style="display: block; font-weight: 600; margin-bottom: 5px;">パスワード</label>
+                  <input type="password" id="loginPassword" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 10px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">ログイン</button>
+              </form>
+            </div>
+          </div>
+        `;
+      },
+
+      async handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+          const { data, error } = await db.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+
+          const { data: profile } = await db.from('profiles').select('*').eq('id', data.user.id).single();
+          if (!profile || (!profile.is_admin && !profile.is_organizer)) {
+            throw new Error('アクセス権限がありません');
+          }
+
+          const token = JSON.stringify({ id: data.user.id, email: profile.email });
+          localStorage.setItem('admin_token', token);
+          this.currentUser = JSON.parse(token);
+          location.reload();
+        } catch (e) {
+          alert('ログイン失敗: ' + e.message);
+        }
+      },
+
+      logout() {
+        localStorage.removeItem('admin_token');
+        location.reload();
+      },
+
+      switchTab(tab, clickedEl) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        const tabEl = document.getElementById(tab + 'Tab');
+        if (tabEl) tabEl.classList.remove('hidden');
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        if (clickedEl) clickedEl.classList.add('active');
+
+        if (tab === 'dashboard') this.loadDashboard();
+        else if (tab === 'products') this.loadProducts();
+        else if (tab === 'exchanges') this.loadExchanges();
+        else if (tab === 'organizers') this.loadOrganizers();
+        else if (tab === 'users') this.loadUsers();
+        else if (tab === 'revenue') this.loadRevenue();
+      },
+
+      async loadDashboard() {
+        try {
+          const [users, exchanges, profiles] = await Promise.all([
+            db.from('profiles').select('id'),
+            db.from('point_exchanges').select('*').eq('status', 'pending'),
+            db.from('profiles').select('points')
+          ]);
+
+          document.getElementById('totalUsers').textContent = users.data?.length || 0;
+          document.getElementById('pendingExchanges').textContent = exchanges.data?.length || 0;
+          const totalPoints = profiles.data?.reduce((sum, p) => sum + (p.points || 0), 0) || 0;
+          document.getElementById('totalPoints').textContent = totalPoints.toLocaleString();
+
+          const now = new Date();
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          const { data: adViews } = await db.from('ad_views').select('id').gte('viewed_at', monthStart.toISOString());
+          document.getElementById('monthlyAdViews').textContent = adViews?.length || 0;
+
+          const estimatedRevenue = (adViews?.length || 0) * 50 / 1000;
+          document.getElementById('estimatedRevenue').textContent = '¥' + Math.floor(estimatedRevenue).toLocaleString();
+
+          await this.loadRegistrationChart();
+          await this.loadAdViewsChart();
+          await this.loadPointsChart();
+        } catch (e) {
+          console.error('Dashboard error:', e);
+        }
+      },
+
+      async loadRegistrationChart() {
+        try {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+          const { data } = await db.from('profiles').select('created_at').gte('created_at', thirtyDaysAgo.toISOString());
+          const dailyCounts = {};
+          data?.forEach(p => {
+            const date = new Date(p.created_at).toLocaleDateString('ja-JP');
+            dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+          });
+
+          const svg = document.getElementById('registrationChart');
+          if (!svg) return;
+
+          const points = Object.values(dailyCounts);
+          const maxVal = Math.max(...points, 10);
+          const polyLine = svg.querySelector('polyline') || document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+
+          const coords = points.map((val, i) => {
+            const x = (i / (points.length - 1)) * 600;
+            const y = 200 - (val / maxVal * 180);
+            return `${x},${y}`;
+          }).join(' ');
+
+          polyLine.setAttribute('points', coords);
+          polyLine.setAttribute('fill', 'none');
+          polyLine.setAttribute('stroke', '#3b82f6');
+          polyLine.setAttribute('stroke-width', '2');
+        } catch (e) {
+          console.error('Chart error:', e);
+        }
+      },
+
+      async loadAdViewsChart() {
+        try {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+          const { data } = await db.from('ad_views').select('viewed_at').gte('viewed_at', thirtyDaysAgo.toISOString());
+          const dailyCounts = {};
+          data?.forEach(v => {
+            const date = new Date(v.viewed_at).toLocaleDateString('ja-JP');
+            dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+          });
+
+          const container = document.getElementById('adViewsChart');
+          const labels = document.getElementById('adViewsLabels');
+          if (!container) return;
+
+          const values = Object.values(dailyCounts);
+          const maxVal = Math.max(...values, 10);
+
+          container.innerHTML = values.map((val, i) => {
+            const height = (val / maxVal * 100);
+            return `<div class="chart-bar" style="height: ${height}%" data-label="${Object.keys(dailyCounts)[i]}" data-value="${val}回"></div>`;
+          }).join('');
+
+          labels.innerHTML = ['4/1', '4/7', '4/14', '4/21', '4/30'].map(date => `<span>${date}</span>`).join('');
+
+          container.querySelectorAll('.chart-bar').forEach(bar => {
+            bar.addEventListener('mouseover', (e) => this.showTooltip(e));
+            bar.addEventListener('mouseout', () => this.hideTooltip());
+          });
+        } catch (e) {
+          console.error('Ad chart error:', e);
+        }
+      },
+
+      async loadPointsChart() {
+        try {
+          const [adViews, loginBonus, exchanges] = await Promise.all([
+            db.from('ad_views').select('points_earned'),
+            db.from('daily_login_bonuses').select('bonus_points'),
+            db.from('point_exchanges').select('points_spent')
+          ]);
+
+          const adTotal = adViews.data?.reduce((s, v) => s + (v.points_earned || 50), 0) || 0;
+          const loginTotal = loginBonus.data?.reduce((s, v) => s + (v.bonus_points || 0), 0) || 0;
+          const exchangeTotal = exchanges.data?.reduce((s, v) => s + (v.points_spent || 0), 0) || 0;
+
+          const container = document.getElementById('pointsChart');
+          const labels = document.getElementById('pointsLabels');
+          if (!container) return;
+
+          const maxVal = Math.max(adTotal, loginTotal, exchangeTotal, 1000);
+          const data = [
+            { label: '広告で獲得', value: adTotal },
+            { label: 'ログインボーナス', value: loginTotal },
+            { label: '交換で消費', value: exchangeTotal }
+          ];
+
+          container.innerHTML = data.map(d => {
+            const height = (d.value / maxVal * 100);
+            return `<div class="chart-bar" style="height: ${height}%" data-label="${d.label}" data-value="${d.value}pt"></div>`;
+          }).join('');
+
+          labels.innerHTML = data.map(d => `<span>${d.label}</span>`).join('');
+
+          container.querySelectorAll('.chart-bar').forEach(bar => {
+            bar.addEventListener('mouseover', (e) => this.showTooltip(e));
+            bar.addEventListener('mouseout', () => this.hideTooltip());
+          });
+        } catch (e) {
+          console.error('Points chart error:', e);
+        }
+      },
+
+      showTooltip(e) {
+        const tooltip = document.getElementById('tooltip');
+        const label = e.target.getAttribute('data-label');
+        const value = e.target.getAttribute('data-value');
+        tooltip.textContent = `${label}: ${value}`;
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 10) + 'px';
+        tooltip.style.top = (e.clientY + 10) + 'px';
+      },
+
+      hideTooltip() {
+        document.getElementById('tooltip').style.display = 'none';
+      },
+
+      async loadProducts() {
+        try {
+          const { data } = await db.from('sponsor_items').select('*').order('sort_order');
+          const table = document.getElementById('productsTable');
+          table.innerHTML = data?.map(item => `
+            <tr>
+              <td>${this.escape(item.id)}</td>
+              <td>${this.escape(item.name)}</td>
+              <td>${item.point_cost}</td>
+              <td>${item.type === 'physical' ? '物理' : 'デジタル'}</td>
+              <td>${item.stock || 0}</td>
+              <td>${item.is_active ? '✓' : '-'}</td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-secondary btn-small" onclick="app.showItemModal('${item.id}')">編集</button>
+                  <button class="btn btn-danger btn-small" onclick="app.deleteItem('${item.id}')">削除</button>
+                </div>
+              </td>
+            </tr>
+          `).join('') || '<tr><td colspan="7" style="text-align: center; color: #9ca3af;">データなし</td></tr>';
+        } catch (e) {
+          console.error('Products error:', e);
+        }
+      },
+
+      showItemModal(itemId) {
+        if (itemId) {
+          db.from('sponsor_items').select('*').eq('id', itemId).single().then(({ data }) => {
+            document.getElementById('itemName').value = data.name;
+            document.getElementById('itemDescription').value = data.description || '';
+            document.getElementById('itemPoints').value = data.point_cost;
+            document.getElementById('itemType').value = data.type;
+            document.getElementById('itemStock').value = data.stock || '';
+            document.getElementById('itemActive').checked = data.is_active;
+            this.currentItemId = itemId;
+            document.getElementById('itemModal').classList.add('active');
+          });
+        } else {
+          document.getElementById('itemName').value = '';
+          document.getElementById('itemDescription').value = '';
+          document.getElementById('itemPoints').value = '';
+          document.getElementById('itemType').value = 'physical';
+          document.getElementById('itemStock').value = '';
+          document.getElementById('itemActive').checked = false;
+          this.currentItemId = null;
+          document.getElementById('itemModal').classList.add('active');
+        }
+      },
+
+      async saveItem(e) {
+        e.preventDefault();
+        try {
+          const data = {
+            name: document.getElementById('itemName').value,
+            description: document.getElementById('itemDescription').value,
+            point_cost: parseInt(document.getElementById('itemPoints').value),
+            type: document.getElementById('itemType').value,
+            stock: parseInt(document.getElementById('itemStock').value) || null,
+            is_active: document.getElementById('itemActive').checked
+          };
+
+          if (this.currentItemId) {
+            await db.from('sponsor_items').update(data).eq('id', this.currentItemId);
+          } else {
+            await db.from('sponsor_items').insert([data]);
+          }
+
+          this.closeModal('itemModal');
+          this.loadProducts();
+        } catch (e) {
+          alert('エラー: ' + e.message);
+        }
+      },
+
+      async deleteItem(itemId) {
+        if (!confirm('この商品を削除しますか？')) return;
+        try {
+          await db.from('sponsor_items').delete().eq('id', itemId);
+          this.loadProducts();
+        } catch (e) {
+          alert('エラー: ' + e.message);
+        }
+      },
+
+      async loadExchanges() {
+        try {
+          const { data, error } = await db.from('point_exchanges').select(`
+            *,
+            profiles:user_id(name, email),
+            sponsor_items:item_id(name)
+          `).order('created_at', { ascending: false });
+
+          if (error) throw error;
+          this.allExchanges = data || [];
+          this.filteredExchanges = [...this.allExchanges];
+          this.renderExchangesTable();
+        } catch (e) {
+          console.error('Exchanges error:', e);
+          document.getElementById('exchangesTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:20px;">読み込みエラー: ' + this.escape(e.message || '') + '</td></tr>';
+        }
+      },
+
+      applyExchangeFilters() {
+        const status = document.getElementById('statusFilter').value;
+        const sort = document.getElementById('sortSelect').value;
+        const search = document.getElementById('searchInput').value.toLowerCase();
+
+        this.filteredExchanges = this.allExchanges.filter(ex => {
+          if (status && ex.status !== status) return false;
+          if (search) {
+            const name = ex.profiles?.name?.toLowerCase() || '';
+            const item = ex.sponsor_items?.name?.toLowerCase() || '';
+            if (!name.includes(search) && !item.includes(search)) return false;
+          }
+          return true;
+        });
+
+        if (sort === 'oldest') {
+          this.filteredExchanges.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        } else if (sort === 'points_high') {
+          this.filteredExchanges.sort((a, b) => b.points_spent - a.points_spent);
+        } else if (sort === 'points_low') {
+          this.filteredExchanges.sort((a, b) => a.points_spent - b.points_spent);
+        } else {
+          this.filteredExchanges.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        }
+
+        this.renderExchangesTable();
+      },
+
+      renderExchangesTable() {
+        const tbody = document.getElementById('exchangesTableBody');
+        tbody.innerHTML = this.filteredExchanges.map(ex => `
+          <tr class="expandable-row" onclick="app.toggleExchangeDetails('${ex.id}')">
+            <td><span class="expand-icon" id="icon-${ex.id}">▼</span></td>
+            <td>${new Date(ex.created_at).toLocaleDateString('ja-JP')}</td>
+            <td>${this.escape(ex.profiles?.name || 'N/A')}</td>
+            <td>${this.escape(ex.sponsor_items?.name || 'N/A')}</td>
+            <td>${ex.points_spent}</td>
+            <td><span class="status-badge status-${ex.status}">${this.statusLabel(ex.status)}</span></td>
+            <td><button class="btn btn-secondary btn-small" onclick="app.showExchangeModal('${ex.id}'); event.stopPropagation();">詳細</button></td>
+          </tr>
+          <tr class="details-row" id="details-${ex.id}">
+            <td colspan="7">
+              <div class="details-content">
+                <strong>配送先:</strong> ${this.escape(ex.shipping_name || '')}<br>
+                <strong>住所:</strong> ${this.escape(ex.shipping_address || '')}<br>
+                <strong>電話:</strong> ${this.escape(ex.shipping_phone || '')}<br>
+                <strong>配送方法:</strong> ${ex.delivery_type || 'N/A'}<br>
+                <strong>備考:</strong> ${this.escape(ex.admin_note || '')}
+              </div>
+            </td>
+          </tr>
+        `).join('') || '<tr><td colspan="7" style="text-align: center; color: #9ca3af;">データなし</td></tr>';
+      },
+
+      toggleExchangeDetails(id) {
+        const row = document.getElementById('details-' + id);
+        const icon = document.getElementById('icon-' + id);
+        if (row.classList.contains('show')) {
+          row.classList.remove('show');
+          icon.classList.remove('expanded');
+        } else {
+          row.classList.add('show');
+          icon.classList.add('expanded');
+        }
+      },
+
+      async showExchangeModal(exchangeId) {
+        try {
+          const { data } = await db.from('point_exchanges').select(`*,
+            profiles:user_id(name, email),
+            sponsor_items:item_id(name, description)
+          `).eq('id', exchangeId).single();
+
+          this.currentExchangeId = exchangeId;
+          document.getElementById('exchangeStatus').value = data.status;
+          document.getElementById('exchangeDetails').innerHTML = `
+            <p><strong>ユーザー:</strong> ${this.escape(data.profiles?.name || 'N/A')}</p>
+            <p><strong>商品:</strong> ${this.escape(data.sponsor_items?.name || 'N/A')}</p>
+            <p><strong>ポイント:</strong> ${data.points_spent}</p>
+            <p><strong>配送先:</strong> ${this.escape(data.shipping_name || '')}</p>
+            <p><strong>住所:</strong> ${this.escape(data.shipping_address || '')}</p>
+            <p><strong>電話:</strong> ${this.escape(data.shipping_phone || '')}</p>
+            <p><strong>配送方法:</strong> ${data.delivery_type || 'N/A'}</p>
+            <p><strong>ギフトコード:</strong> ${this.escape(data.gift_code || 'N/A')}</p>
+          `;
+          document.getElementById('exchangeModal').classList.add('active');
+        } catch (e) {
+          alert('エラー: ' + e.message);
+        }
+      },
+
+      async updateExchangeStatus() {
+        try {
+          const status = document.getElementById('exchangeStatus').value;
+          await db.from('point_exchanges').update({ status }).eq('id', this.currentExchangeId);
+          this.closeModal('exchangeModal');
+          this.loadExchanges();
+        } catch (e) {
+          alert('エラー: ' + e.message);
+        }
+      },
+
+      async exportExchangesCSV() {
+        const csv = [
+          ['ID', '申請日', 'ユーザー', '商品', 'ポイント', 'ステータス', '配送先', '住所', '電話'].join(','),
+          ...this.allExchanges.map(ex => [
+            ex.id,
+            new Date(ex.created_at).toLocaleDateString('ja-JP'),
+            ex.profiles?.name || '',
+            ex.sponsor_items?.name || '',
+            ex.points_spent,
+            this.statusLabel(ex.status),
+            ex.shipping_name || '',
+            ex.shipping_address || '',
+            ex.shipping_phone || ''
+          ].map(v => `"${(v + '').replace(/"/g, '""')}"`).join(','))
+        ].join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'exchanges_' + new Date().toISOString().split('T')[0] + '.csv';
+        link.click();
+      },
+
+      statusLabel(status) {
+        const labels = { pending: '未処理', shipped: '発送済', completed: '完了', cancelled: 'キャンセル' };
+        return labels[status] || status;
+      },
+
+      async loadOrganizers() {
+        try {
+          const statusFilter = document.getElementById('orgStatusFilter')?.value || 'all';
+          let query = db.from('organizer_applications').select('*, profiles:user_id(name, email)').order('applied_at', { ascending: false });
+          if (statusFilter !== 'all') query = query.eq('status', statusFilter);
+
+          const { data, error } = await query;
+          if (error) throw error;
+
+          const countEl = document.getElementById('orgCount');
+          if (countEl) countEl.textContent = '（' + (data?.length || 0) + ' 件）';
+
+          const statusLabels = { pending: '未処理', approved: '承認済み', rejected: '却下済み' };
+          const statusColors = {
+            pending: 'background:#fef3c7;color:#92400e;',
+            approved: 'background:#dcfce7;color:#166534;',
+            rejected: 'background:#fee2e2;color:#991b1b;'
+          };
+
+          const table = document.getElementById('organizersTable');
+          table.innerHTML = (data || []).map(function(a) {
+            const isPending = a.status === 'pending';
+            const xLink = a.x_account ? '<a href="https://x.com/' + app.escape(a.x_account) + '" target="_blank" style="color:#3b82f6;">@' + app.escape(a.x_account) + '</a>' : '-';
+            const tonamelLink = a.tonamel_url ? '<a href="' + app.escape(a.tonamel_url) + '" target="_blank" style="color:#3b82f6;">リンク</a>' : '-';
+            return '<tr>' +
+              '<td>' + app.escape(a.profiles?.name || '未設定') + '</td>' +
+              '<td>' + app.escape(a.profiles?.email || '-') + '</td>' +
+              '<td>' + xLink + '</td>' +
+              '<td>' + tonamelLink + '</td>' +
+              '<td>' + (a.applied_at ? new Date(a.applied_at).toLocaleDateString('ja-JP') : '-') + '</td>' +
+              '<td><span class="status-badge" style="' + (statusColors[a.status] || '') + '">' + (statusLabels[a.status] || a.status) + '</span></td>' +
+              '<td>' + (isPending
+                ? '<div class="btn-group"><button class="btn btn-success btn-small" onclick="app.approveApplication(\'' + a.id + '\')">承認</button><button class="btn btn-danger btn-small" onclick="app.rejectApplication(\'' + a.id + '\')">却下</button></div>'
+                : '<span style="color:#9ca3af;font-size:12px;">処理済み</span>') +
+              '</td></tr>';
+          }).join('') || '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:40px;">申請はありません</td></tr>';
+        } catch (e) {
+          console.error('Organizers load error:', e);
+          alert('主催者申請の読み込みエラー: ' + e.message);
+        }
+      },
+
+      async approveApplication(appId) {
+        if (!confirm('この申請を承認しますか？')) return;
+        try {
+          const { data: appData, error: fetchErr } = await db.from('organizer_applications').select('user_id').eq('id', appId).single();
+          if (fetchErr) throw fetchErr;
+
+          const { error: updateErr } = await db.from('organizer_applications').update({
+            status: 'approved',
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: this.currentUser?.id || null
+          }).eq('id', appId);
+          if (updateErr) throw updateErr;
+
+          const { error: profileErr } = await db.from('profiles').update({
+            is_organizer: true,
+            organizer_status: 'approved'
+          }).eq('id', appData.user_id);
+          if (profileErr) throw profileErr;
+
+          alert('承認しました');
+          this.loadOrganizers();
+        } catch (e) {
+          alert('承認エラー: ' + (e.message || JSON.stringify(e)));
+          console.error('Approve error:', e);
+        }
+      },
+
+      async rejectApplication(appId) {
+        const reason = prompt('却下理由を入力してください（任意）：');
+        if (reason === null) return;
+        try {
+          const { data: appData, error: fetchErr } = await db.from('organizer_applications').select('user_id').eq('id', appId).single();
+          if (fetchErr) throw fetchErr;
+
+          const { error: updateErr } = await db.from('organizer_applications').update({
+            status: 'rejected',
+            reason: reason || null,
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: this.currentUser?.id || null
+          }).eq('id', appId);
+          if (updateErr) throw updateErr;
+
+          await db.from('profiles').update({
+            organizer_status: 'rejected'
+          }).eq('id', appData.user_id);
+
+          alert('却下しました');
+          this.loadOrganizers();
+        } catch (e) {
+          alert('却下エラー: ' + (e.message || JSON.stringify(e)));
+          console.error('Reject error:', e);
+        }
+      },
+
+      allUsers: [],
+
+      async loadUsers() {
+        try {
+          let all = [];
+          let from = 0;
+          const batchSize = 1000;
+          while (true) {
+            const { data, error } = await db.from('profiles').select('*').range(from, from + batchSize - 1).order('created_at', { ascending: false });
+            if (error) throw error;
+            if (!data || data.length === 0) break;
+            all = all.concat(data);
+            if (data.length < batchSize) break;
+            from += batchSize;
+          }
+          this.allUsers = all;
+          const countEl = document.getElementById('userCount');
+          if (countEl) countEl.textContent = '（全 ' + all.length + ' 人）';
+          this.filterAndRenderUsers();
+        } catch (e) {
+          console.error('Users load error:', e);
+        }
+      },
+
+      filterAndRenderUsers() {
+        const query = (document.getElementById('userSearch')?.value || '').toLowerCase();
+        const roleFilter = document.getElementById('userRoleFilter')?.value || 'all';
+        const sortKey = document.getElementById('userSort')?.value || 'created_desc';
+
+        let users = this.allUsers.slice();
+
+        // フィルター
+        if (query) {
+          users = users.filter(u =>
+            (u.name || '').toLowerCase().includes(query) ||
+            (u.email || '').toLowerCase().includes(query) ||
+            (u.id || '').toLowerCase().includes(query)
+          );
+        }
+        if (roleFilter === 'admin') users = users.filter(u => u.is_admin);
+        else if (roleFilter === 'organizer') users = users.filter(u => u.is_organizer);
+        else if (roleFilter === 'premium') users = users.filter(u => u.is_premium);
+        else if (roleFilter === 'banned') users = users.filter(u => u.is_banned);
+
+        // ソート
+        if (sortKey === 'created_desc') users.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        else if (sortKey === 'created_asc') users.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        else if (sortKey === 'points_desc') users.sort((a, b) => (b.points || 0) - (a.points || 0));
+        else if (sortKey === 'points_asc') users.sort((a, b) => (a.points || 0) - (b.points || 0));
+        else if (sortKey === 'name_asc') users.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+        const table = document.getElementById('usersTable');
+        table.innerHTML = users.map(user => {
+          const rowBg = user.is_banned ? 'background: #fef2f2;' : '';
+          return '<tr style="' + rowBg + '">' +
+            '<td>' + this.escape((user.id || '').substring(0, 8)) + '</td>' +
+            '<td>' + this.escape(user.name || '未設定') + (user.is_premium ? ' <span style="color:#7c3aed;font-size:11px;">★Premium</span>' : '') + '</td>' +
+            '<td>' + this.escape(user.email || '-') + '</td>' +
+            '<td>' + (user.points || 0).toLocaleString() + '</td>' +
+            '<td>' + new Date(user.created_at).toLocaleDateString('ja-JP') + '</td>' +
+            '<td><input type="checkbox" ' + (user.is_organizer ? 'checked' : '') + ' onchange="app.toggleOrganizerPermission(\'' + user.id + '\', this.checked)"></td>' +
+            '<td><input type="checkbox" ' + (user.is_admin ? 'checked' : '') + ' onchange="app.toggleAdminPermission(\'' + user.id + '\', this.checked)"></td>' +
+            '<td><div class="btn-group">' +
+              '<button class="btn btn-primary btn-small" onclick="app.showUserDetails(\'' + user.id + '\')">詳細</button>' +
+              (user.is_banned
+                ? '<button class="btn btn-success btn-small" onclick="app.unbanUser(\'' + user.id + '\')">解除</button>'
+                : '<button class="btn btn-danger btn-small" onclick="app.showBanModal(\'' + user.id + '\')">BAN</button>') +
+            '</div></td>' +
+          '</tr>';
+        }).join('') || '<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:40px;">ユーザーが見つかりません</td></tr>';
+      },
+
+      async toggleOrganizerPermission(userId, isGranted) {
+        if (!confirm(isGranted ? '主催者権限を付与しますか？' : '主催者権限を取り消しますか？')) {
+          this.filterAndRenderUsers();
+          return;
+        }
+        try {
+          const { error } = await db.from('profiles').update({ is_organizer: isGranted, organizer_status: isGranted ? 'approved' : 'none' }).eq('id', userId);
+          if (error) throw error;
+          const idx = this.allUsers.findIndex(u => u.id === userId);
+          if (idx >= 0) { this.allUsers[idx].is_organizer = isGranted; this.allUsers[idx].organizer_status = isGranted ? 'approved' : 'none'; }
+          this.filterAndRenderUsers();
+        } catch (e) {
+          alert('権限変更エラー: ' + (e.message || JSON.stringify(e)));
+          this.filterAndRenderUsers();
+        }
+      },
+
+      async toggleAdminPermission(userId, isGranted) {
+        if (!confirm(isGranted ? '管理者権限を付与しますか？この操作は慎重に行ってください。' : '管理者権限を取り消しますか？')) {
+          this.filterAndRenderUsers();
+          return;
+        }
+        try {
+          const { error } = await db.from('profiles').update({ is_admin: isGranted }).eq('id', userId);
+          if (error) throw error;
+          const idx = this.allUsers.findIndex(u => u.id === userId);
+          if (idx >= 0) this.allUsers[idx].is_admin = isGranted;
+          this.filterAndRenderUsers();
+        } catch (e) {
+          alert('権限変更エラー: ' + (e.message || JSON.stringify(e)));
+          this.filterAndRenderUsers();
+        }
+      },
+
+      async showUserDetails(userId) {
+        try {
+          const { data: user } = await db.from('profiles').select('*').eq('id', userId).single();
+          this.currentUserId = userId;
+
+          const { data: exchanges } = await db.from('point_exchanges').select('id').eq('user_id', userId);
+          const { data: adViews } = await db.from('ad_views').select('id').eq('user_id', userId);
+
+          document.getElementById('userDetailsContent').innerHTML = `
+            <p><strong>ユーザー名:</strong> ${this.escape(user.name)}</p>
+            <p><strong>メール:</strong> ${this.escape(user.email)}</p>
+            <p><strong>ポイント:</strong> ${user.points || 0}</p>
+            <p><strong>レベル:</strong> ${user.level || 1}</p>
+            <p><strong>プレミアム:</strong> ${user.is_premium ? 'はい (' + (user.premium_type || 'N/A') + ')' : 'いいえ'}</p>
+            <p><strong>オーガナイザー:</strong> ${user.is_organizer ? 'はい' : 'いいえ'}</p>
+            <p><strong>管理者:</strong> ${user.is_admin ? 'はい' : 'いいえ'}</p>
+            <p><strong>バン:</strong> ${user.is_banned ? 'はい (' + this.escape(user.ban_reason || '') + ')' : 'いいえ'}</p>
+            <p><strong>交換回数:</strong> ${exchanges?.length || 0}</p>
+            <p><strong>広告視聴数:</strong> ${adViews?.length || 0}</p>
+            <p><strong>登録日:</strong> ${new Date(user.created_at).toLocaleDateString('ja-JP')}</p>
+          `;
+          document.getElementById('userDetailsModal').classList.add('active');
+        } catch (e) {
+          alert('エラー: ' + e.message);
+        }
+      },
+
+      showBanModal(userId) {
+        this.currentBanUserId = userId;
+        document.getElementById('banReason').value = '';
+        document.getElementById('banModal').classList.add('active');
+      },
+
+      async banUser() {
+        try {
+          const reason = document.getElementById('banReason').value;
+          await db.from('profiles').update({ is_banned: true, ban_reason: reason }).eq('id', this.currentBanUserId);
+          this.closeModal('banModal');
+          this.loadUsers();
+        } catch (e) {
+          alert('エラー: ' + e.message);
+        }
+      },
+
+      async unbanUser(userId) {
+        try {
+          await db.from('profiles').update({ is_banned: false, ban_reason: null }).eq('id', userId);
+          this.loadUsers();
+        } catch (e) {
+          alert('エラー: ' + e.message);
+        }
+      },
+
+      async loadRevenue() {
+        try {
+          const [adViews, premiumUsers, totalPoints, todayPoints, loginBonusPoints, spentPoints] = await Promise.all([
+            db.from('ad_views').select('points_earned'),
+            db.from('profiles').select('id').eq('is_premium', true),
+            db.from('profiles').select('points'),
+            db.from('ad_views').select('points_earned').gte('viewed_at', new Date().toDateString()),
+            db.from('daily_login_bonuses').select('bonus_points'),
+            db.from('point_exchanges').select('points_spent')
+          ]);
+
+          const totalAdPoints = adViews.data?.reduce((s, v) => s + (v.points_earned || 50), 0) || 0;
+          const totalPts = totalPoints.data?.reduce((s, p) => s + (p.points || 0), 0) || 0;
+          const todayPts = todayPoints.data?.reduce((s, v) => s + (v.points_earned || 50), 0) || 0;
+          const loginBns = loginBonusPoints.data?.reduce((s, v) => s + (v.bonus_points || 0), 0) || 0;
+          const spentPts = spentPoints.data?.reduce((s, v) => s + (v.points_spent || 0), 0) || 0;
+
+          const revenueContainer = document.getElementById('revenueContainer');
+          const html = `
+            <div class="section-title">広告統計</div>
+            <div class="stat-grid">
+              <div class="stat-card blue"><div class="stat-label">総広告視聴</div><div class="stat-value">${adViews.data?.length || 0}</div></div>
+              <div class="stat-card green"><div class="stat-label">広告獲得ポイント</div><div class="stat-value">${totalAdPoints.toLocaleString()}</div></div>
+            </div>
+
+            <div class="section-title">プレミアム・購入</div>
+            <div class="stat-grid">
+              <div class="stat-card blue"><div class="stat-label">プレミアムユーザー数</div><div class="stat-value">${premiumUsers.data?.length || 0}</div></div>
+            </div>
+
+            <div class="section-title">ポイント経済</div>
+            <div class="stat-grid">
+              <div class="stat-card green"><div class="stat-label">総流通ポイント</div><div class="stat-value">${totalPts.toLocaleString()}</div></div>
+              <div class="stat-card blue"><div class="stat-label">本日広告獲得</div><div class="stat-value">${todayPts}</div></div>
+              <div class="stat-card orange"><div class="stat-label">ログインボーナス</div><div class="stat-value">${loginBns.toLocaleString()}</div></div>
+              <div class="stat-card red"><div class="stat-label">交換済ポイント</div><div class="stat-value">${spentPts.toLocaleString()}</div></div>
+            </div>
+          `;
+
+          revenueContainer.innerHTML = html;
+        } catch (e) {
+          console.error('Revenue data error:', e);
+          document.getElementById('revenueContainer').innerHTML = '<div class="alert alert-error">データ読み込みエラー：' + e.message + '</div>';
+        }
+      },
+
+      closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+      },
+
+      escape(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    };
+
+    app.init();
+  </script>
+</body>
+</html>
