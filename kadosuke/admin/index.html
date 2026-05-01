@@ -4,521 +4,177 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>カドスケ！管理画面</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3/tailwind.min.css" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; background: #f9fafb; color: #1f2937; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-      background: #f9fafb;
-      color: #1f2937;
-    }
+    .container { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; height: 100vh; background: #1e293b; color: white; display: flex; flex-direction: column; padding: 20px 16px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); position: sticky; top: 0; }
+    .sidebar-title { font-size: 17px; font-weight: 700; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+    .nav-items { flex: 1; overflow-y: auto; }
+    .nav-section-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 12px 6px; }
+    .nav-item { padding: 9px 12px; margin-bottom: 2px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; border-left: 3px solid transparent; font-weight: 500; font-size: 13px; }
+    .nav-item:hover { background: rgba(255,255,255,0.1); }
+    .nav-item.active { background: #3b82f6; border-left-color: #fbbf24; }
+    .logout-btn { background: #ef4444; border: none; color: white; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: background 0.3s; margin-top: 12px; }
+    .logout-btn:hover { background: #dc2626; }
+    .admin-info { font-size: 11px; color: rgba(255,255,255,0.5); padding: 8px 12px; word-break: break-all; }
 
-    .container {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    .sidebar {
-      width: 260px;
-      min-height: 100vh;
-      background: #1e293b;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-    }
-
-    .sidebar-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 30px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-    }
-
-    .nav-items {
-      flex: 1;
-    }
-
-    .nav-item {
-      padding: 12px 16px;
-      margin-bottom: 8px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border-left: 3px solid transparent;
-      font-weight: 500;
-      font-size: 14px;
-    }
-
-    .nav-item:hover {
-      background: rgba(255,255,255,0.1);
-    }
-
-    .nav-item.active {
-      background: #3b82f6;
-      border-left-color: #fbbf24;
-    }
-
-    .logout-btn {
-      background: #ef4444;
-      border: none;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      width: 100%;
-      transition: background 0.3s;
-    }
-
-    .logout-btn:hover {
-      background: #dc2626;
-    }
-
-    .main {
-      flex: 1;
-      overflow-y: auto;
-      padding: 30px;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-
-    .header h1 {
-      font-size: 28px;
-      font-weight: 700;
-    }
-
-    .section-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-top: 30px;
-      margin-bottom: 15px;
-    }
-
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .stat-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      border-left: 4px solid #3b82f6;
-    }
-
+    .main { flex: 1; overflow-y: auto; padding: 30px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; }
+    .header h1 { font-size: 26px; font-weight: 700; }
+    .section-title { font-size: 16px; font-weight: 700; margin-top: 28px; margin-bottom: 12px; color: #374151; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6; }
     .stat-card.green { border-left-color: #10b981; }
     .stat-card.blue { border-left-color: #3b82f6; }
     .stat-card.orange { border-left-color: #f97316; }
     .stat-card.red { border-left-color: #ef4444; }
     .stat-card.purple { border-left-color: #a855f7; }
+    .stat-label { font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 6px; }
+    .stat-value { font-size: 28px; font-weight: 700; color: #1f2937; }
 
-    .stat-label {
-      font-size: 13px;
-      color: #6b7280;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
+    .chart-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 18px; }
+    .chart-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #1f2937; }
+    .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 180px; margin-bottom: 8px; }
+    .chart-bar { flex: 1; background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%); border-radius: 6px 6px 0 0; cursor: pointer; transition: all 0.2s; min-height: 2px; }
+    .chart-bar:hover { filter: brightness(1.1); }
+    .chart-bar.green { background: linear-gradient(180deg, #10b981 0%, #047857 100%); }
+    .chart-bar.orange { background: linear-gradient(180deg, #f97316 0%, #c2410c 100%); }
+    .chart-bar.red { background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%); }
+    .chart-x-labels { display: flex; gap: 6px; justify-content: space-between; font-size: 11px; color: #9ca3af; }
+    .line-chart { width: 100%; height: 200px; margin-bottom: 10px; }
+    .chart-tooltip { position: fixed; background: #1e293b; color: white; padding: 8px 12px; border-radius: 8px; font-size: 12px; pointer-events: none; z-index: 10000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; }
 
-    .stat-value {
-      font-size: 32px;
-      font-weight: 700;
-      color: #1f2937;
-    }
+    .table-wrapper { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f3f4f6; padding: 12px 14px; text-align: left; font-weight: 600; font-size: 12px; color: #6b7280; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+    td { padding: 12px 14px; border-bottom: 1px solid #e5e7eb; font-size: 13px; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr.banned { background: #fef2f2 !important; }
 
-    .chart-container {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; border-radius: 12px; padding: 26px; max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px rgba(0,0,0,0.15); }
+    .modal-header { font-size: 18px; font-weight: 700; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
 
-    .chart-title {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 15px;
-      color: #1f2937;
-    }
+    .form-group { margin-bottom: 14px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #374151; }
+    .form-hint { font-size: 11px; color: #9ca3af; margin-top: 3px; }
+    input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="datetime-local"], textarea, select { width: 100%; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; background: white; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    textarea { resize: vertical; min-height: 80px; }
+    label.checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+    label.checkbox-label input { width: auto; }
 
-    .chart-bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-      height: 200px;
-      margin-bottom: 10px;
-    }
+    .btn { padding: 8px 14px; border: none; border-radius: 7px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-secondary { background: #6b7280; color: white; }
+    .btn-secondary:hover { background: #4b5563; }
+    .btn-success { background: #10b981; color: white; }
+    .btn-success:hover { background: #059669; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-warning { background: #f59e0b; color: white; }
+    .btn-warning:hover { background: #d97706; }
+    .btn-small { padding: 5px 10px; font-size: 12px; }
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn-disabled, .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .chart-bar {
-      flex: 1;
-      background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
-      border-radius: 8px 8px 0 0;
-      cursor: pointer;
-      transition: all 0.3s;
-      position: relative;
-      min-height: 20px;
-    }
+    .alert { padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+    .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
 
-    .chart-bar:hover {
-      filter: brightness(1.1);
-    }
-
-    .chart-x-labels {
-      display: flex;
-      gap: 8px;
-      justify-content: space-between;
-      font-size: 12px;
-      color: #9ca3af;
-    }
-
-    .line-chart {
-      width: 100%;
-      height: 200px;
-      margin-bottom: 10px;
-    }
-
-    .chart-tooltip {
-      position: fixed;
-      background: #1e293b;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      pointer-events: none;
-      z-index: 10000;
-      display: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      white-space: nowrap;
-    }
-
-    .table-wrapper {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th {
-      background: #f3f4f6;
-      padding: 15px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 13px;
-      color: #6b7280;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    td {
-      padding: 15px;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 14px;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: 12px;
-      padding: 30px;
-      max-width: 600px;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 25px rgba(0,0,0,0.15);
-    }
-
-    .modal-header {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    .form-label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 5px;
-      font-size: 14px;
-    }
-
-    input, textarea, select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-    }
-
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    .btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      transition: all 0.3s;
-    }
-
-    .btn-primary {
-      background: #3b82f6;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #2563eb;
-    }
-
-    .btn-secondary {
-      background: #6b7280;
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #4b5563;
-    }
-
-    .btn-success {
-      background: #10b981;
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #059669;
-    }
-
-    .btn-danger {
-      background: #ef4444;
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: #dc2626;
-    }
-
-    .btn-small {
-      padding: 6px 12px;
-      font-size: 13px;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 8px;
-    }
-
-    .alert {
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-
-    .alert-error {
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-
-    .alert-success {
-      background: #dcfce7;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
     .status-pending { background: #fef3c7; color: #92400e; }
     .status-shipped { background: #dbeafe; color: #1e40af; }
     .status-completed { background: #dcfce7; color: #166534; }
     .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .status-approved { background: #dcfce7; color: #166534; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-active { background: #dbeafe; color: #1e40af; }
+    .status-drawn { background: #ede9fe; color: #5b21b6; }
+    .status-open { background: #dcfce7; color: #166534; }
+    .status-closed { background: #f3f4f6; color: #4b5563; }
 
-    .filter-bar {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
+    .sub-tab-bar { display: flex; gap: 4px; margin-bottom: 18px; padding: 4px; background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); flex-wrap: wrap; }
+    .sub-tab-bar.hidden { display: none; }
+    .sub-tab { padding: 8px 16px; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; color: #6b7280; transition: all 0.2s; border: none; background: transparent; }
+    .sub-tab:hover { background: #f3f4f6; color: #1f2937; }
+    .sub-tab.active { background: #3b82f6; color: white; }
 
-    .filter-bar select,
-    .filter-bar input {
-      padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 14px;
-    }
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .filter-bar select, .filter-bar input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; min-width: 140px; }
 
-    .expandable-row {
-      cursor: pointer;
-    }
+    .expandable-row { cursor: pointer; }
+    .expandable-row:hover { background: #f9fafb; }
+    .details-row { display: none; }
+    .details-row.show { display: table-row; }
+    .details-content { padding: 16px 20px; background: #f9fafb; border-top: 1px solid #e5e7eb; font-size: 13px; line-height: 1.7; }
+    .details-content strong { color: #374151; min-width: 90px; display: inline-block; }
 
-    .expandable-row:hover {
-      background: #f9fafb;
-    }
+    .badge-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-left: 6px; }
+    .badge-admin { background: #fee2e2; color: #991b1b; }
+    .badge-organizer { background: #fef3c7; color: #92400e; }
+    .badge-premium { background: #ede9fe; color: #5b21b6; }
+    .badge-banned { background: #f3f4f6; color: #4b5563; }
 
-    .expand-icon {
-      display: inline-block;
-      transition: transform 0.3s;
-      width: 20px;
-      text-align: center;
-    }
+    .empty { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+    .hidden { display: none !important; }
+    .text-muted { color: #6b7280; font-size: 12px; }
+    .id-cell { font-family: monospace; font-size: 11px; color: #6b7280; }
+    .truncate { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    .expand-icon.expanded {
-      transform: rotate(180deg);
-    }
-
-    .details-row {
-      display: none;
-    }
-
-    .details-row.show {
-      display: table-row;
-    }
-
-    .details-content {
-      padding: 20px;
-      background: #f9fafb;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    .hidden {
-      display: none !important;
-    }
+    .toast { position: fixed; bottom: 30px; right: 30px; padding: 14px 20px; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); font-size: 14px; font-weight: 500; z-index: 10001; opacity: 0; transform: translateY(20px); transition: all 0.3s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: #10b981; color: white; }
+    .toast.error { background: #ef4444; color: white; }
+    .toast.info { background: #3b82f6; color: white; }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="appContainer">
     <div class="sidebar">
       <div class="sidebar-title">カドスケ！管理画面</div>
-      <div class="nav-items">
+      <div class="nav-items" id="navItems">
+        <div class="nav-section-label">運営</div>
         <div class="nav-item active" data-tab="dashboard" onclick="app.switchTab('dashboard', this)">ダッシュボード</div>
-        <div class="nav-item" data-tab="products" onclick="app.switchTab('products', this)">商品管理</div>
-        <div class="nav-item" data-tab="exchanges" onclick="app.switchTab('exchanges', this)">交換・発送管理</div>
-        <div class="nav-item" data-tab="organizers" onclick="app.switchTab('organizers', this)">主催者申請</div>
+        <div class="nav-item" data-tab="exchanges" onclick="app.switchTab('exchanges', this)">交換・発送</div>
         <div class="nav-item" data-tab="users" onclick="app.switchTab('users', this)">ユーザー管理</div>
+
+        <div class="nav-section-label">商品 / 抽選</div>
+        <div class="nav-item" data-tab="products" onclick="app.switchTab('products', this)">商品管理</div>
+        <div class="nav-item" data-tab="instantPrizes" onclick="app.switchTab('instantPrizes', this)">即時抽選景品</div>
+        <div class="nav-item" data-tab="lotteryDraws" onclick="app.switchTab('lotteryDraws', this)">応募抽選</div>
+
+        <div class="nav-section-label">主催者</div>
+        <div class="nav-item" data-tab="organizers" onclick="app.switchTab('organizers', this)">主催者申請</div>
+        <div class="nav-item" data-tab="reviews" onclick="app.switchTab('reviews', this)">レビュー管理</div>
+
+        <div class="nav-section-label">モデレーション</div>
+        <div class="nav-item" data-tab="tournaments" onclick="app.switchTab('tournaments', this)">大会一覧</div>
+        <div class="nav-item" data-tab="leagues" onclick="app.switchTab('leagues', this)">リーグ一覧</div>
+        <div class="nav-item" data-tab="broadcast" onclick="app.switchTab('broadcast', this)">お知らせ配信</div>
+
+        <div class="nav-section-label">分析</div>
         <div class="nav-item" data-tab="revenue" onclick="app.switchTab('revenue', this)">収益・広告</div>
+        <div class="nav-item" data-tab="auditLogs" onclick="app.switchTab('auditLogs', this)">監査ログ</div>
       </div>
+      <div class="admin-info" id="adminInfo"></div>
       <button class="logout-btn" onclick="app.logout()">ログアウト</button>
     </div>
 
     <div class="main">
       <!-- ダッシュボード -->
       <div id="dashboardTab" class="tab-content">
-        <div class="header">
-          <h1>ダッシュボード</h1>
-        </div>
-
-        <!-- KPI Cards -->
-        <div class="stat-grid">
-          <div class="stat-card purple">
-            <div class="stat-label">登録ユーザー数</div>
-            <div class="stat-value" id="totalUsers">0</div>
-          </div>
-          <div class="stat-card blue">
-            <div class="stat-label">今月の広告視聴</div>
-            <div class="stat-value" id="monthlyAdViews">0</div>
-          </div>
-          <div class="stat-card red">
-            <div class="stat-label">未対応交換</div>
-            <div class="stat-value" id="pendingExchanges">0</div>
-          </div>
-          <div class="stat-card green">
-            <div class="stat-label">流通ポイント</div>
-            <div class="stat-value" id="totalPoints">0</div>
-          </div>
-        </div>
-
-        <!-- Charts -->
-        <div class="chart-container">
-          <div class="chart-title">ユーザー登録推移 (過去30日)</div>
-          <svg class="line-chart" id="registrationChart" viewBox="0 0 600 200">
-            <defs>
-              <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3" />
-                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0" />
-              </linearGradient>
-            </defs>
-            <polyline id="registrationLine" points="" fill="none" stroke="#3b82f6" stroke-width="2"/>
-          </svg>
-        </div>
-
-        <div class="chart-container">
-          <div class="chart-title">広告視聴数推移 (過去30日)</div>
-          <div class="chart-bars" id="adViewsChart"></div>
-          <div class="chart-x-labels" id="adViewsLabels"></div>
-        </div>
-
-        <div class="chart-container">
-          <div class="chart-title">ポイント経済</div>
-          <div class="chart-bars" id="pointsChart"></div>
-          <div class="chart-x-labels" id="pointsLabels"></div>
-        </div>
-
-        <div class="stat-grid">
-          <div class="stat-card blue">
-            <div class="stat-label">推定広告収益（月額）</div>
-            <div class="stat-value" id="estimatedRevenue">¥0</div>
-          </div>
+        <div class="header"><h1>ダッシュボード</h1></div>
+        <div id="dashboardContent">
+          <div class="alert alert-info">読み込み中...</div>
         </div>
       </div>
 
@@ -526,26 +182,75 @@
       <div id="productsTab" class="tab-content hidden">
         <div class="header">
           <h1>商品管理</h1>
-          <button class="btn btn-primary" onclick="app.showItemModal()">新規商品</button>
+          <button class="btn btn-primary" onclick="app.showItemModal()">＋ 新規商品</button>
         </div>
-
+        <div class="filter-bar">
+          <select id="productTypeFilter" onchange="app.loadProducts()">
+            <option value="all">すべての種別</option>
+            <option value="exchange">交換商品</option>
+            <option value="lottery">抽選商品</option>
+          </select>
+          <label class="checkbox-label" style="margin-left:8px;"><input type="checkbox" id="productActiveOnly" onchange="app.loadProducts()"> 有効のみ</label>
+        </div>
         <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>商品名</th>
-                <th>ポイント</th>
-                <th>種別</th>
-                <th>ストック</th>
-                <th>有効</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="productsTable">
-            </tbody>
-          </table>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>商品名</th>
+                  <th>種別</th>
+                  <th>配送</th>
+                  <th>抽選種別</th>
+                  <th>ポイント</th>
+                  <th>在庫</th>
+                  <th>有効</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="productsTable"></tbody>
+            </table>
+          </div>
         </div>
+      </div>
+
+      <!-- 即時抽選景品 -->
+      <div id="instantPrizesTab" class="tab-content hidden">
+        <div class="header">
+          <h1>即時抽選景品</h1>
+          <button class="btn btn-primary" onclick="app.showPrizeModal()">＋ 新規景品</button>
+        </div>
+        <div class="alert alert-info">即時抽選タイプの商品（type=lottery, lottery_type=instant）に紐づく景品プールを管理します。重み (probability_weight) の比で抽選されます。</div>
+        <div class="filter-bar">
+          <select id="prizeItemFilter" onchange="app.renderPrizes()">
+            <option value="">すべての即時抽選商品</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>所属商品</th>
+                  <th>景品名</th>
+                  <th>当たり</th>
+                  <th>重み</th>
+                  <th>在庫</th>
+                  <th>還元pt</th>
+                  <th>配送</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="prizesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 応募抽選 -->
+      <div id="lotteryDrawsTab" class="tab-content hidden">
+        <div class="header"><h1>応募抽選（ドロー）</h1></div>
+        <div class="alert alert-info">応募タイプの抽選商品（lottery_type=application）について、応募された pt の重みでランダム選出します。</div>
+        <div id="lotteryDrawsContent"></div>
       </div>
 
       <!-- 交換・発送管理 -->
@@ -554,7 +259,6 @@
           <h1>交換・発送管理</h1>
           <button class="btn btn-primary" onclick="app.exportExchangesCSV()">CSVエクスポート</button>
         </div>
-
         <div class="filter-bar">
           <select id="statusFilter" onchange="app.applyExchangeFilters()">
             <option value="">すべて</option>
@@ -563,31 +267,37 @@
             <option value="completed">完了</option>
             <option value="cancelled">キャンセル</option>
           </select>
-          <select id="sortSelect" onchange="app.applyExchangeFilters()">
-            <option value="newest">申請日(新しい順)</option>
-            <option value="oldest">申請日(古い順)</option>
-            <option value="points_high">ポイント(多い順)</option>
-            <option value="points_low">ポイント(少ない順)</option>
+          <select id="typeFilter" onchange="app.applyExchangeFilters()">
+            <option value="fulfillable">要対応のみ（交換+当選）</option>
+            <option value="all">すべての履歴</option>
+            <option value="exchange">交換のみ</option>
+            <option value="instant_lottery_win">即時当選のみ</option>
           </select>
-          <input type="text" id="searchInput" placeholder="ユーザー名・商品名で検索" onkeyup="app.applyExchangeFilters()">
+          <select id="sortSelect" onchange="app.applyExchangeFilters()">
+            <option value="newest">申請日（新しい順）</option>
+            <option value="oldest">申請日（古い順）</option>
+            <option value="points_high">ポイント（多い順）</option>
+            <option value="points_low">ポイント（少ない順）</option>
+          </select>
+          <input type="text" id="searchInput" placeholder="ユーザー名・商品名で検索" oninput="app.applyExchangeFilters()" style="flex:1;min-width:160px;">
         </div>
-
         <div class="table-wrapper">
-          <table id="exchangesTable">
-            <thead>
-              <tr>
-                <th></th>
-                <th>申請日</th>
-                <th>ユーザー</th>
-                <th>商品</th>
-                <th>ポイント</th>
-                <th>ステータス</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="exchangesTableBody">
-            </tbody>
-          </table>
+          <div class="table-scroll">
+            <table id="exchangesTable">
+              <thead>
+                <tr>
+                  <th>申請日</th>
+                  <th>ユーザー</th>
+                  <th>商品</th>
+                  <th>種別</th>
+                  <th>ポイント</th>
+                  <th>ステータス</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="exchangesTableBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -595,34 +305,68 @@
       <div id="organizersTab" class="tab-content hidden">
         <div class="header">
           <h1>主催者申請</h1>
-          <span id="orgCount" style="color: #6b7280; font-size: 14px;"></span>
+          <span id="orgCount" class="text-muted"></span>
         </div>
-
-        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
-          <select id="orgStatusFilter" onchange="app.loadOrganizers()" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+        <div class="filter-bar">
+          <select id="orgStatusFilter" onchange="app.loadOrganizers()">
             <option value="all">すべて</option>
             <option value="pending">未処理のみ</option>
             <option value="approved">承認済み</option>
             <option value="rejected">却下済み</option>
           </select>
         </div>
-
         <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>ユーザー</th>
-                <th>メール</th>
-                <th>X (Twitter)</th>
-                <th>Tonamel</th>
-                <th>申請日</th>
-                <th>ステータス</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="organizersTable">
-            </tbody>
-          </table>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ユーザー</th>
+                  <th>メール</th>
+                  <th>X (Twitter)</th>
+                  <th>Tonamel</th>
+                  <th>申請日</th>
+                  <th>ステータス</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="organizersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- レビュー管理 -->
+      <div id="reviewsTab" class="tab-content hidden">
+        <div class="header">
+          <h1>主催者レビュー</h1>
+          <span id="reviewCount" class="text-muted"></span>
+        </div>
+        <div class="filter-bar">
+          <select id="reviewRatingFilter" onchange="app.loadReviews()">
+            <option value="all">すべての評価</option>
+            <option value="1">★1 のみ</option>
+            <option value="2">★2 のみ</option>
+            <option value="3">★3 のみ</option>
+            <option value="4">★4 のみ</option>
+            <option value="5">★5 のみ</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>投稿日</th>
+                  <th>主催者</th>
+                  <th>レビュアー</th>
+                  <th>評価</th>
+                  <th>コメント</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="reviewsTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -630,19 +374,18 @@
       <div id="usersTab" class="tab-content hidden">
         <div class="header">
           <h1>ユーザー管理</h1>
-          <span id="userCount" style="color: #6b7280; font-size: 14px;"></span>
+          <span id="userCount" class="text-muted"></span>
         </div>
-
-        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
-          <input type="text" id="userSearch" placeholder="名前・メールで検索..." oninput="app.filterAndRenderUsers()" style="flex: 1; min-width: 200px; max-width: 350px;">
-          <select id="userRoleFilter" onchange="app.filterAndRenderUsers()" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+        <div class="filter-bar">
+          <input type="text" id="userSearch" placeholder="名前・メールで検索..." oninput="app.filterAndRenderUsers()" style="flex:1;min-width:200px;max-width:350px;">
+          <select id="userRoleFilter" onchange="app.filterAndRenderUsers()">
             <option value="all">全ユーザー</option>
             <option value="admin">管理者のみ</option>
             <option value="organizer">主催者のみ</option>
             <option value="premium">プレミアムのみ</option>
             <option value="banned">BANのみ</option>
           </select>
-          <select id="userSort" onchange="app.filterAndRenderUsers()" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 8px;">
+          <select id="userSort" onchange="app.filterAndRenderUsers()">
             <option value="created_desc">登録日（新しい順）</option>
             <option value="created_asc">登録日（古い順）</option>
             <option value="points_desc">ポイント（多い順）</option>
@@ -650,199 +393,508 @@
             <option value="name_asc">名前（A→Z）</option>
           </select>
         </div>
-
         <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>ユーザー名</th>
-                <th>メール</th>
-                <th>ポイント</th>
-                <th>登録日</th>
-                <th>主催者</th>
-                <th>管理者</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="usersTable">
-            </tbody>
-          </table>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>ユーザー</th>
+                  <th>メール</th>
+                  <th>ポイント</th>
+                  <th>登録日</th>
+                  <th>権限</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 大会一覧 -->
+      <div id="tournamentsTab" class="tab-content hidden">
+        <div class="header">
+          <h1>大会一覧</h1>
+          <span id="tournamentCount" class="text-muted"></span>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="tournamentSearch" placeholder="大会名・主催者で検索..." oninput="app.renderTournaments()">
+          <select id="tournamentStatusFilter" onchange="app.renderTournaments()">
+            <option value="all">すべて</option>
+            <option value="upcoming">開催前</option>
+            <option value="completed">完了</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>開催日</th>
+                  <th>大会名</th>
+                  <th>ゲーム</th>
+                  <th>主催者</th>
+                  <th>参加</th>
+                  <th>ステータス</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="tournamentsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- リーグ一覧 -->
+      <div id="leaguesTab" class="tab-content hidden">
+        <div class="header">
+          <h1>リーグ一覧</h1>
+          <span id="leagueCount" class="text-muted"></span>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="leagueSearch" placeholder="リーグ名・主催者で検索..." oninput="app.renderLeagues()">
+          <select id="leagueStatusFilter" onchange="app.renderLeagues()">
+            <option value="all">すべて</option>
+            <option value="active">開催中</option>
+            <option value="completed">完了</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>作成日</th>
+                  <th>リーグ名</th>
+                  <th>ゲーム</th>
+                  <th>主催者</th>
+                  <th>参加者</th>
+                  <th>ステータス</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="leaguesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- お知らせ配信 -->
+      <div id="broadcastTab" class="tab-content hidden">
+        <div class="header"><h1>お知らせ配信</h1></div>
+        <div class="alert alert-warning">⚠️ 配信したお知らせは取り消しできません。送信前に内容と対象を必ず確認してください。</div>
+        <div style="background:white;padding:24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);max-width:720px;">
+          <div class="form-group">
+            <label class="form-label">対象</label>
+            <select id="broadcastTarget" onchange="app.previewBroadcastTarget()">
+              <option value="all">全ユーザー（BAN 除外）</option>
+              <option value="organizer">主催者のみ</option>
+              <option value="premium">プレミアム会員のみ</option>
+              <option value="admin">管理者のみ（テスト用）</option>
+            </select>
+            <div class="form-hint" id="broadcastTargetHint"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">タイトル <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="broadcastTitle" maxlength="80" placeholder="例: アップデートのお知らせ">
+            <div class="form-hint">最大 80 文字</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">本文 <span style="color:#ef4444;">*</span></label>
+            <textarea id="broadcastBody" maxlength="500" placeholder="本文（最大 500 文字）"></textarea>
+          </div>
+          <div class="btn-group" style="margin-top:8px;">
+            <button class="btn btn-primary" onclick="app.sendBroadcast()">送信する</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('broadcastTitle').value='';document.getElementById('broadcastBody').value='';">クリア</button>
+          </div>
+        </div>
+        <div class="section-title">直近の配信</div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>送信日時</th><th>対象</th><th>タイトル</th><th>件数</th></tr>
+              </thead>
+              <tbody id="broadcastHistoryTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <!-- 収益・広告 -->
       <div id="revenueTab" class="tab-content hidden">
-        <div class="header">
-          <h1>収益・広告</h1>
-        </div>
+        <div class="header"><h1>収益・広告</h1></div>
+        <div id="revenueContainer"><div class="alert alert-info">読み込み中...</div></div>
+      </div>
 
-        <div id="revenueContainer">
-          <div class="alert alert-success">読み込み中...</div>
+      <!-- 監査ログ -->
+      <div id="auditLogsTab" class="tab-content hidden">
+        <div class="header"><h1>監査ログ</h1></div>
+        <div class="alert alert-info">管理者の操作履歴（BAN, 権限変更, ポイント補正, レビュー削除, お知らせ配信など）。</div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>日時</th>
+                  <th>管理者</th>
+                  <th>操作</th>
+                  <th>対象ユーザー</th>
+                  <th>詳細</th>
+                </tr>
+              </thead>
+              <tbody id="auditLogsTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Item Modal -->
+  <!-- 商品 (sponsor_items) モーダル -->
   <div id="itemModal" class="modal">
     <div class="modal-content">
-      <div class="modal-header">商品</div>
+      <div class="modal-header" id="itemModalHeader">商品</div>
       <form onsubmit="app.saveItem(event)">
         <div class="form-group">
-          <label class="form-label">商品名</label>
+          <label class="form-label">商品名 <span style="color:#ef4444;">*</span></label>
           <input type="text" id="itemName" required>
         </div>
         <div class="form-group">
           <label class="form-label">説明</label>
           <textarea id="itemDescription"></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">ポイント</label>
-          <input type="number" id="itemPoints" required>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">アイコン</label>
+            <input type="text" id="itemIcon" placeholder="🎁">
+          </div>
+          <div class="form-group">
+            <label class="form-label">スポンサー名</label>
+            <input type="text" id="itemSponsorName">
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">種別</label>
-          <select id="itemType" required>
-            <option value="physical">物理</option>
-            <option value="digital">デジタル</option>
-          </select>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">商品種別 <span style="color:#ef4444;">*</span></label>
+            <select id="itemType" required onchange="app.toggleItemTypeFields()">
+              <option value="exchange">交換 (exchange)</option>
+              <option value="lottery">抽選 (lottery)</option>
+            </select>
+            <div class="form-hint">交換: 即時 pt 消費 / 抽選: 後で当選者が決まる</div>
+          </div>
+          <div class="form-group" id="itemDeliveryGroup">
+            <label class="form-label">配送タイプ</label>
+            <select id="itemDeliveryType">
+              <option value="digital">デジタル</option>
+              <option value="physical">物理</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">ストック</label>
-          <input type="number" id="itemStock">
+        <div class="form-row" id="itemLotteryFields" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">抽選方式</label>
+            <select id="itemLotteryType">
+              <option value="application">応募抽選 (application)</option>
+              <option value="instant">即時抽選 (instant)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">抽選ステータス</label>
+            <select id="itemLotteryStatus">
+              <option value="open">受付中</option>
+              <option value="closed">締切</option>
+              <option value="drawn">抽選済</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">
-            <input type="checkbox" id="itemActive"> 有効
-          </label>
+        <div class="form-row" id="itemLotteryDateFields" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">抽選開始日時</label>
+            <input type="datetime-local" id="itemLotteryStart">
+          </div>
+          <div class="form-group">
+            <label class="form-label">抽選終了日時</label>
+            <input type="datetime-local" id="itemLotteryEnd">
+          </div>
         </div>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" class="btn btn-primary">保存</button>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">ポイント <span style="color:#ef4444;">*</span></label>
+            <input type="number" id="itemPoints" required min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">在庫（空欄=無制限）</label>
+            <input type="number" id="itemStock" min="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">表示順 (sort_order)</label>
+            <input type="number" id="itemSortOrder" value="0">
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label" style="margin-top:24px;">
+              <input type="checkbox" id="itemActive" checked> 有効
+            </label>
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top:18px;justify-content:flex-end;">
           <button type="button" class="btn btn-secondary" onclick="app.closeModal('itemModal')">キャンセル</button>
+          <button type="submit" class="btn btn-primary">保存</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Exchange Modal -->
+  <!-- 即時抽選景品モーダル -->
+  <div id="prizeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header" id="prizeModalHeader">即時抽選景品</div>
+      <form onsubmit="app.savePrize(event)">
+        <div class="form-group">
+          <label class="form-label">所属商品 <span style="color:#ef4444;">*</span></label>
+          <select id="prizeItemId" required></select>
+          <div class="form-hint">即時抽選タイプ (lottery_type=instant) の商品のみ表示されます</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">景品名 <span style="color:#ef4444;">*</span></label>
+          <input type="text" id="prizeName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">説明</label>
+          <textarea id="prizeDescription"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">アイコン</label>
+            <input type="text" id="prizeIcon" placeholder="🎁">
+          </div>
+          <div class="form-group">
+            <label class="form-label">配送タイプ</label>
+            <select id="prizeDeliveryType">
+              <option value="digital">デジタル</option>
+              <option value="physical">物理</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">重み (probability_weight) <span style="color:#ef4444;">*</span></label>
+            <input type="number" id="prizeWeight" required min="0" value="10">
+            <div class="form-hint">他の景品との比で当選確率が決まる</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">在庫（空欄=無制限）</label>
+            <input type="number" id="prizeStock" min="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">還元ポイント</label>
+            <input type="number" id="prizeRefund" min="0" value="0">
+            <div class="form-hint">はずれの場合に返却するポイント数</div>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label" style="margin-top:24px;">
+              <input type="checkbox" id="prizeIsWinning"> 当たり扱い（当選通知・発送対象）
+            </label>
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top:18px;justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="app.closeModal('prizeModal')">キャンセル</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 交換詳細モーダル -->
   <div id="exchangeModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">交換詳細</div>
       <div id="exchangeDetails"></div>
-      <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;">
+      <div class="form-group">
+        <label class="form-label">ステータス</label>
         <select id="exchangeStatus">
           <option value="pending">未処理</option>
           <option value="shipped">発送済</option>
           <option value="completed">完了</option>
           <option value="cancelled">キャンセル</option>
         </select>
-        <button class="btn btn-primary" onclick="app.updateExchangeStatus()">更新</button>
+      </div>
+      <div class="form-group" id="exchangeGiftCodeGroup">
+        <label class="form-label">ギフトコード（デジタル配送時に入力）</label>
+        <input type="text" id="exchangeGiftCode" placeholder="例: STEAM-XXXX-YYYY">
+        <div class="form-hint">入力するとユーザーがアプリ内でコピーできるようになります</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">管理メモ（社内用）</label>
+        <textarea id="exchangeAdminNote" placeholder="発送業者・送り状番号・備考など"></textarea>
+      </div>
+      <div class="btn-group" style="margin-top:14px;justify-content:flex-end;">
         <button class="btn btn-secondary" onclick="app.closeModal('exchangeModal')">閉じる</button>
+        <button class="btn btn-primary" onclick="app.updateExchangeStatus()">更新</button>
       </div>
     </div>
   </div>
 
-  <!-- Ban Modal -->
+  <!-- BAN モーダル -->
   <div id="banModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">ユーザーをバン</div>
       <div class="form-group">
-        <label class="form-label">理由</label>
-        <textarea id="banReason" placeholder="バンの理由を入力..."></textarea>
+        <label class="form-label">対象ユーザー</label>
+        <div id="banModalUserInfo" class="text-muted"></div>
       </div>
-      <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button class="btn btn-danger" onclick="app.banUser()">バン</button>
+      <div class="form-group">
+        <label class="form-label">理由（必須）</label>
+        <textarea id="banReason" placeholder="バンの理由を入力（監査ログに残ります）"></textarea>
+      </div>
+      <div class="btn-group" style="margin-top:14px;justify-content:flex-end;">
         <button class="btn btn-secondary" onclick="app.closeModal('banModal')">キャンセル</button>
+        <button class="btn btn-danger" onclick="app.banUser()">BAN 実行</button>
       </div>
     </div>
   </div>
 
-  <!-- User Details Modal -->
+  <!-- ユーザー詳細モーダル -->
   <div id="userDetailsModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">ユーザー詳細</div>
       <div id="userDetailsContent"></div>
-      <button class="btn btn-secondary" style="margin-top: 20px;" onclick="app.closeModal('userDetailsModal')">閉じる</button>
+      <hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;">
+      <div class="section-title" style="margin-top:0;">ポイント補正</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">増減量 (±)</label>
+          <input type="number" id="adjustPointsDelta" placeholder="例: 100 / -50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">理由</label>
+          <input type="text" id="adjustPointsReason" placeholder="サポート対応 / お詫び 等">
+        </div>
+      </div>
+      <div class="btn-group" style="justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="app.closeModal('userDetailsModal')">閉じる</button>
+        <button class="btn btn-warning" onclick="app.adjustUserPoints()">ポイント補正実行</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 却下理由モーダル -->
+  <div id="rejectModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">主催者申請の却下</div>
+      <div class="form-group">
+        <label class="form-label">却下理由</label>
+        <textarea id="rejectReason" placeholder="ユーザーには通知されません（社内記録用）"></textarea>
+      </div>
+      <div class="btn-group" style="margin-top:14px;justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="app.closeModal('rejectModal')">キャンセル</button>
+        <button class="btn btn-danger" onclick="app.confirmRejectApplication()">却下する</button>
+      </div>
     </div>
   </div>
 
   <div class="chart-tooltip" id="tooltip"></div>
+  <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const db = window.supabase.createClient(
-      'https://zheiyyjsbgqywesqfzqr.supabase.co',
-      'sb_publishable_j2IOWXMCBuCogllLYAo9iA_zYseUmWZ'
-    );
+    const SUPABASE_URL = 'https://zheiyyjsbgqywesqfzqr.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_j2IOWXMCBuCogllLYAo9iA_zYseUmWZ';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
 
     const app = {
       currentUser: null,
+      currentProfile: null,
       currentExchangeId: null,
-      currentUserId: null,
-      currentItemId: null,
+      currentExchangeRow: null,
       currentBanUserId: null,
+      currentRejectAppId: null,
+      currentItemId: null,
+      currentPrizeId: null,
+      allUsers: [],
       allExchanges: [],
       filteredExchanges: [],
+      allPrizes: [],
+      allTournaments: [],
+      allLeagues: [],
+      lotteryItems: [],
 
+      // ============ 起動 ============
       async init() {
-        const token = localStorage.getItem('admin_token');
-        if (!token) {
+        const { data: { session } } = await db.auth.getSession();
+        if (!session) {
           this.showLogin();
           return;
         }
-        this.currentUser = JSON.parse(token);
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.getElementById('dashboardTab').classList.remove('hidden');
+        const { data: profile } = await db.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+        if (!profile || !profile.is_admin) {
+          await db.auth.signOut();
+          this.showLogin('管理者権限がありません');
+          return;
+        }
+        this.currentUser = session.user;
+        this.currentProfile = profile;
+        document.getElementById('adminInfo').textContent = profile.email || profile.name;
         await this.loadDashboard();
       },
 
-      showLogin() {
-        document.body.innerHTML = `
-          <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 20px 25px rgba(0,0,0,0.15); max-width: 400px; width: 100%;">
-              <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 30px; text-align: center;">管理画面</h1>
+      showLogin(errorMsg) {
+        document.getElementById('appContainer').style.display = 'none';
+        const html = `
+          <div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
+            <div style="background:white;padding:40px;border-radius:12px;box-shadow:0 20px 25px rgba(0,0,0,0.15);max-width:420px;width:90%;">
+              <h1 style="font-size:26px;font-weight:700;margin-bottom:24px;text-align:center;">カドスケ！管理画面</h1>
+              ${errorMsg ? '<div class="alert alert-error">' + errorMsg + '</div>' : ''}
               <form onsubmit="app.handleLogin(event)">
-                <div style="margin-bottom: 15px;">
-                  <label style="display: block; font-weight: 600; margin-bottom: 5px;">メール</label>
-                  <input type="email" id="loginEmail" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;">
+                <div style="margin-bottom:14px;">
+                  <label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px;">メール</label>
+                  <input type="email" id="loginEmail" required style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
                 </div>
-                <div style="margin-bottom: 20px;">
-                  <label style="display: block; font-weight: 600; margin-bottom: 5px;">パスワード</label>
-                  <input type="password" id="loginPassword" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px;">
+                <div style="margin-bottom:20px;">
+                  <label style="display:block;font-weight:600;margin-bottom:5px;font-size:13px;">パスワード</label>
+                  <input type="password" id="loginPassword" required style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;">
                 </div>
-                <button type="submit" style="width: 100%; padding: 10px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">ログイン</button>
+                <button type="submit" style="width:100%;padding:11px;background:#3b82f6;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;">ログイン</button>
               </form>
             </div>
-          </div>
-        `;
+          </div>`;
+        const wrap = document.createElement('div');
+        wrap.id = 'loginWrap';
+        wrap.innerHTML = html;
+        const existing = document.getElementById('loginWrap');
+        if (existing) existing.remove();
+        document.body.appendChild(wrap);
       },
 
       async handleLogin(e) {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
-
         try {
           const { data, error } = await db.auth.signInWithPassword({ email, password });
           if (error) throw error;
-
-          const { data: profile } = await db.from('profiles').select('*').eq('id', data.user.id).single();
-          if (!profile || (!profile.is_admin && !profile.is_organizer)) {
-            throw new Error('アクセス権限がありません');
+          const { data: profile } = await db.from('profiles').select('*').eq('id', data.user.id).maybeSingle();
+          if (!profile || !profile.is_admin) {
+            await db.auth.signOut();
+            throw new Error('管理者権限がありません');
           }
-
-          const token = JSON.stringify({ id: data.user.id, email: profile.email });
-          localStorage.setItem('admin_token', token);
-          this.currentUser = JSON.parse(token);
           location.reload();
         } catch (e) {
           alert('ログイン失敗: ' + e.message);
         }
       },
 
-      logout() {
-        localStorage.removeItem('admin_token');
+      async logout() {
+        await db.auth.signOut();
         location.reload();
       },
 
@@ -853,176 +905,216 @@
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         if (clickedEl) clickedEl.classList.add('active');
 
-        if (tab === 'dashboard') this.loadDashboard();
-        else if (tab === 'products') this.loadProducts();
-        else if (tab === 'exchanges') this.loadExchanges();
-        else if (tab === 'organizers') this.loadOrganizers();
-        else if (tab === 'users') this.loadUsers();
-        else if (tab === 'revenue') this.loadRevenue();
+        const loaders = {
+          dashboard: 'loadDashboard',
+          products: 'loadProducts',
+          instantPrizes: 'loadInstantPrizes',
+          lotteryDraws: 'loadLotteryDraws',
+          exchanges: 'loadExchanges',
+          organizers: 'loadOrganizers',
+          reviews: 'loadReviews',
+          users: 'loadUsers',
+          tournaments: 'loadTournaments',
+          leagues: 'loadLeagues',
+          broadcast: 'loadBroadcast',
+          revenue: 'loadRevenue',
+          auditLogs: 'loadAuditLogs',
+        };
+        const fn = loaders[tab];
+        if (fn && typeof this[fn] === 'function') this[fn]();
       },
 
+      // ============ 共通ユーティリティ ============
+      escape(text) {
+        if (text == null) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+      },
+      toast(msg, type) {
+        type = type || 'info';
+        const el = document.getElementById('toast');
+        el.className = 'toast ' + type + ' show';
+        el.textContent = msg;
+        setTimeout(() => el.classList.remove('show'), 3000);
+      },
+      closeModal(id) { document.getElementById(id).classList.remove('active'); },
+      todayStartISO() {
+        const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString();
+      },
+      monthStartISO() {
+        const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
+      },
+      daysAgoISO(n) {
+        const d = new Date(); d.setDate(d.getDate() - n); d.setHours(0, 0, 0, 0); return d.toISOString();
+      },
+      shortDate(s) { return s ? new Date(s).toLocaleDateString('ja-JP') : '-'; },
+      shortDateTime(s) { return s ? new Date(s).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'; },
+      formatPoints(n) { return (n || 0).toLocaleString(); },
+      statusLabel(s) {
+        const m = { pending: '未処理', shipped: '発送済', completed: '完了', cancelled: 'キャンセル', open: '受付中', closed: '締切', drawn: '抽選済', upcoming: '開催前', active: '開催中', approved: '承認済', rejected: '却下' };
+        return m[s] || s || '-';
+      },
+      typeLabel(t) {
+        const m = { exchange: '交換', lottery_entry: '抽選応募', instant_lottery: '即時抽選(はずれ)', instant_lottery_win: '即時抽選(当選)' };
+        return m[t] || t || '-';
+      },
+      handleErr(prefix, e) {
+        console.error(prefix, e);
+        const msg = (e && (e.message || e.error_description || JSON.stringify(e))) || '不明なエラー';
+        this.toast(prefix + ': ' + msg, 'error');
+      },
+
+      // ============ ダッシュボード ============
       async loadDashboard() {
+        const c = document.getElementById('dashboardContent');
+        c.innerHTML = '<div class="alert alert-info">読み込み中...</div>';
         try {
-          const [users, exchanges, profiles] = await Promise.all([
-            db.from('profiles').select('id'),
-            db.from('point_exchanges').select('*').eq('status', 'pending'),
-            db.from('profiles').select('points')
-          ]);
+          const monthStart = this.monthStartISO();
+          const thirtyAgo = this.daysAgoISO(30);
 
-          document.getElementById('totalUsers').textContent = users.data?.length || 0;
-          document.getElementById('pendingExchanges').textContent = exchanges.data?.length || 0;
-          const totalPoints = profiles.data?.reduce((sum, p) => sum + (p.points || 0), 0) || 0;
-          document.getElementById('totalPoints').textContent = totalPoints.toLocaleString();
-
-          const now = new Date();
-          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-          const { data: adViews } = await db.from('ad_views').select('id').gte('viewed_at', monthStart.toISOString());
-          document.getElementById('monthlyAdViews').textContent = adViews?.length || 0;
-
-          const estimatedRevenue = (adViews?.length || 0) * 50 / 1000;
-          document.getElementById('estimatedRevenue').textContent = '¥' + Math.floor(estimatedRevenue).toLocaleString();
-
-          await this.loadRegistrationChart();
-          await this.loadAdViewsChart();
-          await this.loadPointsChart();
-        } catch (e) {
-          console.error('Dashboard error:', e);
-        }
-      },
-
-      async loadRegistrationChart() {
-        try {
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-          const { data } = await db.from('profiles').select('created_at').gte('created_at', thirtyDaysAgo.toISOString());
-          const dailyCounts = {};
-          data?.forEach(p => {
-            const date = new Date(p.created_at).toLocaleDateString('ja-JP');
-            dailyCounts[date] = (dailyCounts[date] || 0) + 1;
-          });
-
-          const svg = document.getElementById('registrationChart');
-          if (!svg) return;
-
-          const points = Object.values(dailyCounts);
-          const maxVal = Math.max(...points, 10);
-          const polyLine = svg.querySelector('polyline') || document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-
-          const coords = points.map((val, i) => {
-            const x = (i / (points.length - 1)) * 600;
-            const y = 200 - (val / maxVal * 180);
-            return `${x},${y}`;
-          }).join(' ');
-
-          polyLine.setAttribute('points', coords);
-          polyLine.setAttribute('fill', 'none');
-          polyLine.setAttribute('stroke', '#3b82f6');
-          polyLine.setAttribute('stroke-width', '2');
-        } catch (e) {
-          console.error('Chart error:', e);
-        }
-      },
-
-      async loadAdViewsChart() {
-        try {
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-          const { data } = await db.from('ad_views').select('viewed_at').gte('viewed_at', thirtyDaysAgo.toISOString());
-          const dailyCounts = {};
-          data?.forEach(v => {
-            const date = new Date(v.viewed_at).toLocaleDateString('ja-JP');
-            dailyCounts[date] = (dailyCounts[date] || 0) + 1;
-          });
-
-          const container = document.getElementById('adViewsChart');
-          const labels = document.getElementById('adViewsLabels');
-          if (!container) return;
-
-          const values = Object.values(dailyCounts);
-          const maxVal = Math.max(...values, 10);
-
-          container.innerHTML = values.map((val, i) => {
-            const height = (val / maxVal * 100);
-            return `<div class="chart-bar" style="height: ${height}%" data-label="${Object.keys(dailyCounts)[i]}" data-value="${val}回"></div>`;
-          }).join('');
-
-          labels.innerHTML = ['4/1', '4/7', '4/14', '4/21', '4/30'].map(date => `<span>${date}</span>`).join('');
-
-          container.querySelectorAll('.chart-bar').forEach(bar => {
-            bar.addEventListener('mouseover', (e) => this.showTooltip(e));
-            bar.addEventListener('mouseout', () => this.hideTooltip());
-          });
-        } catch (e) {
-          console.error('Ad chart error:', e);
-        }
-      },
-
-      async loadPointsChart() {
-        try {
-          const [adViews, loginBonus, exchanges] = await Promise.all([
+          const [pCount, pendingEx, pSum, adMonthCount, adAllPoints, regSeries, adSeries, loginSum, exchangeSum, premiumCount, banCount] = await Promise.all([
+            db.from('profiles').select('id', { count: 'exact', head: true }),
+            db.from('point_exchanges').select('id', { count: 'exact', head: true }).eq('status', 'pending').in('type', ['exchange', 'instant_lottery_win']),
+            db.from('profiles').select('points'),
+            db.from('ad_views').select('id', { count: 'exact', head: true }).gte('viewed_at', monthStart),
             db.from('ad_views').select('points_earned'),
+            db.from('profiles').select('created_at').gte('created_at', thirtyAgo).order('created_at', { ascending: true }),
+            db.from('ad_views').select('viewed_at').gte('viewed_at', thirtyAgo).order('viewed_at', { ascending: true }),
             db.from('daily_login_bonuses').select('bonus_points'),
-            db.from('point_exchanges').select('points_spent')
+            db.from('point_exchanges').select('points_spent'),
+            db.from('profiles').select('id', { count: 'exact', head: true }).eq('is_premium', true),
+            db.from('profiles').select('id', { count: 'exact', head: true }).eq('is_banned', true),
           ]);
 
-          const adTotal = adViews.data?.reduce((s, v) => s + (v.points_earned || 50), 0) || 0;
-          const loginTotal = loginBonus.data?.reduce((s, v) => s + (v.bonus_points || 0), 0) || 0;
-          const exchangeTotal = exchanges.data?.reduce((s, v) => s + (v.points_spent || 0), 0) || 0;
+          const totalPoints = (pSum.data || []).reduce((s, p) => s + (p.points || 0), 0);
+          const adRevenue = Math.floor(((adMonthCount.count || 0) * 0.5)); // 仮: 1 視聴 = ¥0.5
 
-          const container = document.getElementById('pointsChart');
-          const labels = document.getElementById('pointsLabels');
-          if (!container) return;
+          c.innerHTML = `
+            <div class="stat-grid">
+              <div class="stat-card purple"><div class="stat-label">登録ユーザー数</div><div class="stat-value">${pCount.count || 0}</div></div>
+              <div class="stat-card blue"><div class="stat-label">プレミアム会員</div><div class="stat-value">${premiumCount.count || 0}</div></div>
+              <div class="stat-card red"><div class="stat-label">未対応の交換/当選</div><div class="stat-value">${pendingEx.count || 0}</div></div>
+              <div class="stat-card green"><div class="stat-label">流通ポイント</div><div class="stat-value">${this.formatPoints(totalPoints)}</div></div>
+              <div class="stat-card orange"><div class="stat-label">今月の広告視聴</div><div class="stat-value">${adMonthCount.count || 0}</div></div>
+              <div class="stat-card red"><div class="stat-label">BAN ユーザー</div><div class="stat-value">${banCount.count || 0}</div></div>
+            </div>
 
-          const maxVal = Math.max(adTotal, loginTotal, exchangeTotal, 1000);
-          const data = [
-            { label: '広告で獲得', value: adTotal },
-            { label: 'ログインボーナス', value: loginTotal },
-            { label: '交換で消費', value: exchangeTotal }
-          ];
+            <div class="chart-container">
+              <div class="chart-title">ユーザー登録推移（過去30日）</div>
+              <div class="chart-bars" id="regChart"></div>
+              <div class="chart-x-labels" id="regLabels"></div>
+            </div>
 
-          container.innerHTML = data.map(d => {
-            const height = (d.value / maxVal * 100);
-            return `<div class="chart-bar" style="height: ${height}%" data-label="${d.label}" data-value="${d.value}pt"></div>`;
-          }).join('');
+            <div class="chart-container">
+              <div class="chart-title">広告視聴数推移（過去30日）</div>
+              <div class="chart-bars" id="adChart"></div>
+              <div class="chart-x-labels" id="adLabels"></div>
+            </div>
 
-          labels.innerHTML = data.map(d => `<span>${d.label}</span>`).join('');
+            <div class="chart-container">
+              <div class="chart-title">ポイント経済（累計）</div>
+              <div class="chart-bars" id="ptsChart" style="height:160px;"></div>
+              <div class="chart-x-labels" id="ptsLabels"></div>
+            </div>
 
-          container.querySelectorAll('.chart-bar').forEach(bar => {
-            bar.addEventListener('mouseover', (e) => this.showTooltip(e));
-            bar.addEventListener('mouseout', () => this.hideTooltip());
-          });
+            <div class="stat-grid">
+              <div class="stat-card blue"><div class="stat-label">推定広告収益（今月）</div><div class="stat-value">¥${this.formatPoints(adRevenue)}</div></div>
+            </div>
+          `;
+
+          this.renderDailyBars('regChart', 'regLabels', regSeries.data || [], 'created_at');
+          this.renderDailyBars('adChart', 'adLabels', adSeries.data || [], 'viewed_at');
+
+          const adTotal = (adAllPoints.data || []).reduce((s, v) => s + (v.points_earned || 0), 0);
+          const loginTotal = (loginSum.data || []).reduce((s, v) => s + (v.bonus_points || 0), 0);
+          const spentTotal = (exchangeSum.data || []).reduce((s, v) => s + (v.points_spent || 0), 0);
+          this.renderCategoryBars('ptsChart', 'ptsLabels', [
+            { label: '広告で獲得', value: adTotal, cls: 'green' },
+            { label: 'ログインボーナス', value: loginTotal, cls: 'orange' },
+            { label: '消費(交換・抽選)', value: spentTotal, cls: 'red' }
+          ]);
         } catch (e) {
-          console.error('Points chart error:', e);
+          this.handleErr('ダッシュボード', e);
+          c.innerHTML = '<div class="alert alert-error">読み込みエラー: ' + this.escape(e.message) + '</div>';
         }
       },
 
-      showTooltip(e) {
-        const tooltip = document.getElementById('tooltip');
-        const label = e.target.getAttribute('data-label');
-        const value = e.target.getAttribute('data-value');
-        tooltip.textContent = `${label}: ${value}`;
-        tooltip.style.display = 'block';
-        tooltip.style.left = (e.clientX + 10) + 'px';
-        tooltip.style.top = (e.clientY + 10) + 'px';
+      // 直近30日を1日ごとのバケットに集計してバー描画（ソート済みの配列を渡すこと）
+      renderDailyBars(barId, labelId, rows, dateField) {
+        const bars = document.getElementById(barId);
+        const labels = document.getElementById(labelId);
+        if (!bars) return;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const buckets = [];
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          buckets.push({ key: d.toISOString().slice(0, 10), date: d, count: 0 });
+        }
+        const map = Object.fromEntries(buckets.map(b => [b.key, b]));
+        rows.forEach(r => {
+          const v = r[dateField];
+          if (!v) return;
+          const k = new Date(v).toISOString().slice(0, 10);
+          if (map[k]) map[k].count++;
+        });
+
+        const max = Math.max(1, ...buckets.map(b => b.count));
+        bars.innerHTML = buckets.map(b => {
+          const h = (b.count / max) * 100;
+          return '<div class="chart-bar" style="height:' + h + '%" data-label="' + b.key + '" data-value="' + b.count + ' 件" onmouseover="app.tip(event)" onmouseout="app.tipOff()"></div>';
+        }).join('');
+
+        labels.innerHTML = buckets.filter((_, i) => i % 5 === 0 || i === buckets.length - 1).map(b => {
+          const m = b.date.getMonth() + 1, d = b.date.getDate();
+          return '<span>' + m + '/' + d + '</span>';
+        }).join('');
       },
 
-      hideTooltip() {
-        document.getElementById('tooltip').style.display = 'none';
+      renderCategoryBars(barId, labelId, items) {
+        const bars = document.getElementById(barId);
+        const labels = document.getElementById(labelId);
+        if (!bars) return;
+        const max = Math.max(1, ...items.map(i => i.value));
+        bars.innerHTML = items.map(it => {
+          const h = (it.value / max) * 100;
+          return '<div class="chart-bar ' + (it.cls || '') + '" style="height:' + h + '%" data-label="' + this.escape(it.label) + '" data-value="' + this.formatPoints(it.value) + ' pt" onmouseover="app.tip(event)" onmouseout="app.tipOff()"></div>';
+        }).join('');
+        labels.innerHTML = items.map(it => '<span>' + this.escape(it.label) + '</span>').join('');
       },
 
+      tip(e) {
+        const t = document.getElementById('tooltip');
+        const l = e.target.getAttribute('data-label');
+        const v = e.target.getAttribute('data-value');
+        t.textContent = l + ': ' + v;
+        t.style.display = 'block';
+        t.style.left = (e.clientX + 12) + 'px';
+        t.style.top = (e.clientY + 12) + 'px';
+      },
+      tipOff() { document.getElementById('tooltip').style.display = 'none'; },
+
+      // ============ 商品管理 (sponsor_items) ============
       async loadProducts() {
         try {
-          const { data } = await db.from('sponsor_items').select('*').order('sort_order');
-          const table = document.getElementById('productsTable');
-          table.innerHTML = data?.map(item => `
+          const typeFilter = document.getElementById('productTypeFilter').value;
+          const activeOnly = document.getElementById('productActiveOnly').checked;
+          let q = db.from('sponsor_items').select('*').order('sort_order', { ascending: true });
+          if (typeFilter !== 'all') q = q.eq('type', typeFilter);
+          if (activeOnly) q = q.eq('is_active', true);
+          const { data, error } = await q;
+          if (error) throw error;
+          const rows = (data || []).map(item => `
             <tr>
-              <td>${this.escape(item.id)}</td>
-              <td>${this.escape(item.name)}</td>
-              <td>${item.point_cost}</td>
-              <td>${item.type === 'physical' ? '物理' : 'デジタル'}</td>
-              <td>${item.stock || 0}</td>
+              <td>${item.icon ? this.escape(item.icon) + ' ' : ''}${this.escape(item.name)}${item.sponsor_name ? '<div class="text-muted">提供: ' + this.escape(item.sponsor_name) + '</div>' : ''}</td>
+              <td><span class="status-badge ${item.type === 'lottery' ? 'status-active' : 'status-completed'}">${item.type === 'lottery' ? '抽選' : '交換'}</span></td>
+              <td>${item.delivery_type === 'physical' ? '物理' : 'デジタル'}</td>
+              <td>${item.type === 'lottery' ? (item.lottery_type === 'instant' ? '即時' : '応募') : '-'}</td>
+              <td>${this.formatPoints(item.point_cost)}</td>
+              <td>${item.stock == null ? '∞' : item.stock}</td>
               <td>${item.is_active ? '✓' : '-'}</td>
               <td>
                 <div class="btn-group">
@@ -1031,530 +1123,920 @@
                 </div>
               </td>
             </tr>
-          `).join('') || '<tr><td colspan="7" style="text-align: center; color: #9ca3af;">データなし</td></tr>';
-        } catch (e) {
-          console.error('Products error:', e);
-        }
+          `).join('');
+          document.getElementById('productsTable').innerHTML = rows || '<tr><td colspan="8" class="empty">商品がありません</td></tr>';
+        } catch (e) { this.handleErr('商品の読み込み', e); }
+      },
+
+      toggleItemTypeFields() {
+        const t = document.getElementById('itemType').value;
+        const isLottery = t === 'lottery';
+        document.getElementById('itemLotteryFields').style.display = isLottery ? '' : 'none';
+        document.getElementById('itemLotteryDateFields').style.display = isLottery ? '' : 'none';
       },
 
       showItemModal(itemId) {
+        document.getElementById('itemModalHeader').textContent = itemId ? '商品を編集' : '新規商品';
+        this.currentItemId = itemId || null;
+        const fields = ['itemName', 'itemDescription', 'itemIcon', 'itemSponsorName', 'itemPoints', 'itemStock', 'itemSortOrder', 'itemLotteryStart', 'itemLotteryEnd'];
+        fields.forEach(f => document.getElementById(f).value = '');
+        document.getElementById('itemType').value = 'exchange';
+        document.getElementById('itemDeliveryType').value = 'digital';
+        document.getElementById('itemLotteryType').value = 'application';
+        document.getElementById('itemLotteryStatus').value = 'open';
+        document.getElementById('itemActive').checked = true;
+        document.getElementById('itemSortOrder').value = '0';
+        this.toggleItemTypeFields();
+
         if (itemId) {
-          db.from('sponsor_items').select('*').eq('id', itemId).single().then(({ data }) => {
-            document.getElementById('itemName').value = data.name;
+          db.from('sponsor_items').select('*').eq('id', itemId).maybeSingle().then(({ data }) => {
+            if (!data) return;
+            document.getElementById('itemName').value = data.name || '';
             document.getElementById('itemDescription').value = data.description || '';
-            document.getElementById('itemPoints').value = data.point_cost;
-            document.getElementById('itemType').value = data.type;
-            document.getElementById('itemStock').value = data.stock || '';
-            document.getElementById('itemActive').checked = data.is_active;
-            this.currentItemId = itemId;
-            document.getElementById('itemModal').classList.add('active');
+            document.getElementById('itemIcon').value = data.icon || '';
+            document.getElementById('itemSponsorName').value = data.sponsor_name || '';
+            document.getElementById('itemType').value = data.type || 'exchange';
+            document.getElementById('itemDeliveryType').value = data.delivery_type || 'digital';
+            document.getElementById('itemLotteryType').value = data.lottery_type || 'application';
+            document.getElementById('itemLotteryStatus').value = data.lottery_status || 'open';
+            document.getElementById('itemPoints').value = data.point_cost || 0;
+            document.getElementById('itemStock').value = data.stock == null ? '' : data.stock;
+            document.getElementById('itemSortOrder').value = data.sort_order || 0;
+            document.getElementById('itemActive').checked = !!data.is_active;
+            document.getElementById('itemLotteryStart').value = data.lottery_start_at ? this.toLocalInput(data.lottery_start_at) : '';
+            document.getElementById('itemLotteryEnd').value = data.lottery_end_at ? this.toLocalInput(data.lottery_end_at) : '';
+            this.toggleItemTypeFields();
           });
-        } else {
-          document.getElementById('itemName').value = '';
-          document.getElementById('itemDescription').value = '';
-          document.getElementById('itemPoints').value = '';
-          document.getElementById('itemType').value = 'physical';
-          document.getElementById('itemStock').value = '';
-          document.getElementById('itemActive').checked = false;
-          this.currentItemId = null;
-          document.getElementById('itemModal').classList.add('active');
         }
+        document.getElementById('itemModal').classList.add('active');
+      },
+
+      toLocalInput(iso) {
+        const d = new Date(iso);
+        const tz = d.getTimezoneOffset() * 60000;
+        return new Date(d - tz).toISOString().slice(0, 16);
       },
 
       async saveItem(e) {
         e.preventDefault();
         try {
+          const type = document.getElementById('itemType').value;
+          const stockRaw = document.getElementById('itemStock').value;
+          const startRaw = document.getElementById('itemLotteryStart').value;
+          const endRaw = document.getElementById('itemLotteryEnd').value;
           const data = {
-            name: document.getElementById('itemName').value,
-            description: document.getElementById('itemDescription').value,
-            point_cost: parseInt(document.getElementById('itemPoints').value),
-            type: document.getElementById('itemType').value,
-            stock: parseInt(document.getElementById('itemStock').value) || null,
-            is_active: document.getElementById('itemActive').checked
+            name: document.getElementById('itemName').value.trim(),
+            description: document.getElementById('itemDescription').value.trim() || null,
+            icon: document.getElementById('itemIcon').value.trim() || null,
+            sponsor_name: document.getElementById('itemSponsorName').value.trim() || null,
+            type: type,
+            delivery_type: document.getElementById('itemDeliveryType').value,
+            point_cost: parseInt(document.getElementById('itemPoints').value, 10) || 0,
+            stock: stockRaw === '' ? null : parseInt(stockRaw, 10),
+            sort_order: parseInt(document.getElementById('itemSortOrder').value, 10) || 0,
+            is_active: document.getElementById('itemActive').checked,
+            lottery_type: type === 'lottery' ? document.getElementById('itemLotteryType').value : null,
+            lottery_status: type === 'lottery' ? document.getElementById('itemLotteryStatus').value : null,
+            lottery_start_at: type === 'lottery' && startRaw ? new Date(startRaw).toISOString() : null,
+            lottery_end_at: type === 'lottery' && endRaw ? new Date(endRaw).toISOString() : null,
           };
-
           if (this.currentItemId) {
-            await db.from('sponsor_items').update(data).eq('id', this.currentItemId);
+            const { error } = await db.from('sponsor_items').update(data).eq('id', this.currentItemId);
+            if (error) throw error;
           } else {
-            await db.from('sponsor_items').insert([data]);
+            const { error } = await db.from('sponsor_items').insert(data);
+            if (error) throw error;
           }
-
           this.closeModal('itemModal');
+          this.toast('商品を保存しました', 'success');
           this.loadProducts();
-        } catch (e) {
-          alert('エラー: ' + e.message);
-        }
+        } catch (e) { this.handleErr('商品の保存', e); }
       },
 
       async deleteItem(itemId) {
-        if (!confirm('この商品を削除しますか？')) return;
+        if (!confirm('この商品を削除しますか？関連する応募・交換履歴も連動して削除されます。')) return;
         try {
-          await db.from('sponsor_items').delete().eq('id', itemId);
+          // ストレージの画像も削除
+          const { data: item } = await db.from('sponsor_items').select('image_url').eq('id', itemId).maybeSingle();
+          if (item?.image_url) {
+            const path = item.image_url.split('/sponsor-items/')[1]?.split('?')[0];
+            if (path) await db.storage.from('sponsor-items').remove([path]);
+          }
+          const { error } = await db.from('sponsor_items').delete().eq('id', itemId);
+          if (error) throw error;
+          this.toast('商品を削除しました', 'success');
           this.loadProducts();
-        } catch (e) {
-          alert('エラー: ' + e.message);
-        }
+        } catch (e) { this.handleErr('商品の削除', e); }
       },
 
+      // ============ 即時抽選景品 (instant_lottery_prizes) ============
+      async loadInstantPrizes() {
+        try {
+          const [items, prizes] = await Promise.all([
+            db.from('sponsor_items').select('*').eq('type', 'lottery').eq('lottery_type', 'instant').order('sort_order'),
+            db.from('instant_lottery_prizes').select('*').order('item_id').order('probability_weight', { ascending: false })
+          ]);
+          this.lotteryItems = items.data || [];
+          this.allPrizes = prizes.data || [];
+          const filterSel = document.getElementById('prizeItemFilter');
+          filterSel.innerHTML = '<option value="">すべての即時抽選商品</option>' + this.lotteryItems.map(it => `<option value="${it.id}">${this.escape(it.name)}</option>`).join('');
+          this.renderPrizes();
+        } catch (e) { this.handleErr('景品の読み込み', e); }
+      },
+
+      renderPrizes() {
+        const filter = document.getElementById('prizeItemFilter').value;
+        const itemMap = Object.fromEntries(this.lotteryItems.map(i => [i.id, i]));
+        const list = filter ? this.allPrizes.filter(p => p.item_id === filter) : this.allPrizes;
+        const totalsByItem = {};
+        list.forEach(p => { totalsByItem[p.item_id] = (totalsByItem[p.item_id] || 0) + (p.probability_weight || 0); });
+        const rows = list.map(p => {
+          const item = itemMap[p.item_id];
+          const total = totalsByItem[p.item_id] || 1;
+          const pct = ((p.probability_weight || 0) / total * 100).toFixed(1);
+          return `
+            <tr>
+              <td>${item ? this.escape(item.name) : '<span class="text-muted">削除済</span>'}</td>
+              <td>${p.icon ? this.escape(p.icon) + ' ' : ''}${this.escape(p.name)}</td>
+              <td>${p.is_winning ? '<span class="status-badge status-completed">当たり</span>' : '<span class="status-badge status-cancelled">はずれ</span>'}</td>
+              <td>${p.probability_weight} <span class="text-muted">(${pct}%)</span></td>
+              <td>${p.stock == null ? '∞' : p.stock}</td>
+              <td>${p.point_refund || 0}</td>
+              <td>${p.delivery_type === 'physical' ? '物理' : 'デジタル'}</td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-secondary btn-small" onclick="app.showPrizeModal('${p.id}')">編集</button>
+                  <button class="btn btn-danger btn-small" onclick="app.deletePrize('${p.id}')">削除</button>
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
+        document.getElementById('prizesTable').innerHTML = rows || '<tr><td colspan="8" class="empty">景品がありません</td></tr>';
+      },
+
+      showPrizeModal(prizeId) {
+        document.getElementById('prizeModalHeader').textContent = prizeId ? '景品を編集' : '新規景品';
+        this.currentPrizeId = prizeId || null;
+        const sel = document.getElementById('prizeItemId');
+        sel.innerHTML = this.lotteryItems.map(it => `<option value="${it.id}">${this.escape(it.name)}</option>`).join('');
+        if (this.lotteryItems.length === 0) {
+          alert('即時抽選タイプの商品がまだありません。先に「商品管理」で type=抽選, 抽選方式=即時 の商品を作成してください。');
+          return;
+        }
+        ['prizeName', 'prizeDescription', 'prizeIcon'].forEach(f => document.getElementById(f).value = '');
+        document.getElementById('prizeWeight').value = '10';
+        document.getElementById('prizeStock').value = '';
+        document.getElementById('prizeRefund').value = '0';
+        document.getElementById('prizeIsWinning').checked = false;
+        document.getElementById('prizeDeliveryType').value = 'digital';
+
+        if (prizeId) {
+          db.from('instant_lottery_prizes').select('*').eq('id', prizeId).maybeSingle().then(({ data }) => {
+            if (!data) return;
+            sel.value = data.item_id;
+            document.getElementById('prizeName').value = data.name || '';
+            document.getElementById('prizeDescription').value = data.description || '';
+            document.getElementById('prizeIcon').value = data.icon || '';
+            document.getElementById('prizeWeight').value = data.probability_weight || 0;
+            document.getElementById('prizeStock').value = data.stock == null ? '' : data.stock;
+            document.getElementById('prizeRefund').value = data.point_refund || 0;
+            document.getElementById('prizeIsWinning').checked = !!data.is_winning;
+            document.getElementById('prizeDeliveryType').value = data.delivery_type || 'digital';
+          });
+        }
+        document.getElementById('prizeModal').classList.add('active');
+      },
+
+      async savePrize(e) {
+        e.preventDefault();
+        try {
+          const stockRaw = document.getElementById('prizeStock').value;
+          const data = {
+            item_id: document.getElementById('prizeItemId').value,
+            name: document.getElementById('prizeName').value.trim(),
+            description: document.getElementById('prizeDescription').value.trim() || null,
+            icon: document.getElementById('prizeIcon').value.trim() || null,
+            probability_weight: parseInt(document.getElementById('prizeWeight').value, 10) || 0,
+            stock: stockRaw === '' ? null : parseInt(stockRaw, 10),
+            point_refund: parseInt(document.getElementById('prizeRefund').value, 10) || 0,
+            is_winning: document.getElementById('prizeIsWinning').checked,
+            delivery_type: document.getElementById('prizeDeliveryType').value,
+          };
+          if (this.currentPrizeId) {
+            const { error } = await db.from('instant_lottery_prizes').update(data).eq('id', this.currentPrizeId);
+            if (error) throw error;
+          } else {
+            const { error } = await db.from('instant_lottery_prizes').insert(data);
+            if (error) throw error;
+          }
+          this.closeModal('prizeModal');
+          this.toast('景品を保存しました', 'success');
+          this.loadInstantPrizes();
+        } catch (e) { this.handleErr('景品の保存', e); }
+      },
+
+      async deletePrize(id) {
+        if (!confirm('この景品を削除しますか？過去の抽選結果は残ります。')) return;
+        try {
+          const { error } = await db.from('instant_lottery_prizes').delete().eq('id', id);
+          if (error) throw error;
+          this.toast('景品を削除しました', 'success');
+          this.loadInstantPrizes();
+        } catch (e) { this.handleErr('景品の削除', e); }
+      },
+
+      // ============ 応募抽選 (lottery draws) ============
+      async loadLotteryDraws() {
+        try {
+          const { data: items, error } = await db
+            .from('sponsor_items')
+            .select('*')
+            .eq('type', 'lottery')
+            .eq('lottery_type', 'application')
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+
+          const ids = (items || []).map(i => i.id);
+          let entriesByItem = {};
+          if (ids.length > 0) {
+            const { data: entries } = await db.from('lottery_entries').select('item_id, user_id, points_invested').in('item_id', ids);
+            (entries || []).forEach(e => {
+              if (!entriesByItem[e.item_id]) entriesByItem[e.item_id] = { count: 0, points: 0, users: new Set() };
+              entriesByItem[e.item_id].count++;
+              entriesByItem[e.item_id].points += e.points_invested || 0;
+              entriesByItem[e.item_id].users.add(e.user_id);
+            });
+          }
+          const winnerIds = (items || []).filter(i => i.winner_user_id).map(i => i.winner_user_id);
+          let winnerMap = {};
+          if (winnerIds.length > 0) {
+            const { data: winners } = await db.from('profiles').select('id, name, email').in('id', winnerIds);
+            winnerMap = Object.fromEntries((winners || []).map(w => [w.id, w]));
+          }
+
+          const html = (items || []).map(it => {
+            const stats = entriesByItem[it.id] || { count: 0, points: 0, users: new Set() };
+            const winner = it.winner_user_id ? winnerMap[it.winner_user_id] : null;
+            const drawn = it.lottery_status === 'drawn';
+            return `
+              <div style="background:white;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+                  <div style="flex:1;min-width:200px;">
+                    <div style="font-weight:700;font-size:15px;margin-bottom:4px;">${it.icon ? this.escape(it.icon) + ' ' : ''}${this.escape(it.name)}</div>
+                    <div class="text-muted">${this.escape(it.description || '')}</div>
+                    <div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap;font-size:13px;">
+                      <span>応募: <strong>${stats.count}</strong> 件</span>
+                      <span>応募者: <strong>${stats.users.size}</strong> 人</span>
+                      <span>消費pt: <strong>${this.formatPoints(stats.points)}</strong></span>
+                      <span class="status-badge status-${drawn ? 'drawn' : (it.lottery_status || 'open')}">${this.statusLabel(it.lottery_status)}</span>
+                    </div>
+                    ${winner ? `<div style="margin-top:8px;padding:10px;background:#ede9fe;border-radius:8px;font-size:13px;">🏆 当選者: <strong>${this.escape(winner.name || winner.email || winner.id)}</strong></div>` : ''}
+                  </div>
+                  <div class="btn-group">
+                    ${drawn
+                      ? '<span class="text-muted">抽選済</span>'
+                      : (stats.count === 0
+                        ? '<button class="btn btn-secondary btn-small btn-disabled" disabled>応募なし</button>'
+                        : '<button class="btn btn-primary btn-small" onclick="app.drawLotteryWinner(\'' + it.id + '\', \'' + this.escape(it.name).replace(/\'/g, "\\'") + '\')">抽選を実行</button>')}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+          document.getElementById('lotteryDrawsContent').innerHTML = html || '<div class="empty">応募抽選タイプの商品がありません</div>';
+        } catch (e) { this.handleErr('応募抽選の読み込み', e); }
+      },
+
+      async drawLotteryWinner(itemId, itemName) {
+        if (!confirm(itemName + ' の抽選を実行します。一度実行すると取り消せません。よろしいですか？')) return;
+        try {
+          const { data, error } = await db.rpc('admin_draw_lottery_winner', { p_item_id: itemId });
+          if (error) throw error;
+          this.toast('抽選が完了しました（当選者: ' + (data?.winner_name || '不明') + '）', 'success');
+          this.loadLotteryDraws();
+        } catch (e) { this.handleErr('抽選の実行', e); }
+      },
+
+      // ============ 交換・発送管理 ============
       async loadExchanges() {
         try {
           const { data, error } = await db.from('point_exchanges').select(`
             *,
             profiles:user_id(name, email),
-            sponsor_items:item_id(name)
-          `).order('created_at', { ascending: false });
-
+            sponsor_items:item_id(name, icon, delivery_type)
+          `).order('created_at', { ascending: false }).limit(500);
           if (error) throw error;
           this.allExchanges = data || [];
-          this.filteredExchanges = [...this.allExchanges];
-          this.renderExchangesTable();
-        } catch (e) {
-          console.error('Exchanges error:', e);
-          document.getElementById('exchangesTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:20px;">読み込みエラー: ' + this.escape(e.message || '') + '</td></tr>';
-        }
+          this.applyExchangeFilters();
+        } catch (e) { this.handleErr('交換の読み込み', e); }
       },
 
       applyExchangeFilters() {
         const status = document.getElementById('statusFilter').value;
+        const typeFilter = document.getElementById('typeFilter').value;
         const sort = document.getElementById('sortSelect').value;
         const search = document.getElementById('searchInput').value.toLowerCase();
 
-        this.filteredExchanges = this.allExchanges.filter(ex => {
-          if (status && ex.status !== status) return false;
-          if (search) {
-            const name = ex.profiles?.name?.toLowerCase() || '';
-            const item = ex.sponsor_items?.name?.toLowerCase() || '';
-            if (!name.includes(search) && !item.includes(search)) return false;
-          }
-          return true;
-        });
+        let list = [...this.allExchanges];
+        if (typeFilter === 'fulfillable') list = list.filter(ex => ex.type === 'exchange' || ex.type === 'instant_lottery_win');
+        else if (typeFilter !== 'all') list = list.filter(ex => ex.type === typeFilter);
 
-        if (sort === 'oldest') {
-          this.filteredExchanges.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-        } else if (sort === 'points_high') {
-          this.filteredExchanges.sort((a, b) => b.points_spent - a.points_spent);
-        } else if (sort === 'points_low') {
-          this.filteredExchanges.sort((a, b) => a.points_spent - b.points_spent);
-        } else {
-          this.filteredExchanges.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        if (status) list = list.filter(ex => ex.status === status);
+        if (search) {
+          list = list.filter(ex => {
+            const n = (ex.profiles?.name || '').toLowerCase();
+            const e = (ex.profiles?.email || '').toLowerCase();
+            const i = (ex.sponsor_items?.name || ex.prize_name || '').toLowerCase();
+            return n.includes(search) || e.includes(search) || i.includes(search);
+          });
         }
+        if (sort === 'oldest') list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        else if (sort === 'points_high') list.sort((a, b) => b.points_spent - a.points_spent);
+        else if (sort === 'points_low') list.sort((a, b) => a.points_spent - b.points_spent);
+        else list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
+        this.filteredExchanges = list;
         this.renderExchangesTable();
       },
 
       renderExchangesTable() {
         const tbody = document.getElementById('exchangesTableBody');
-        tbody.innerHTML = this.filteredExchanges.map(ex => `
-          <tr class="expandable-row" onclick="app.toggleExchangeDetails('${ex.id}')">
-            <td><span class="expand-icon" id="icon-${ex.id}">▼</span></td>
-            <td>${new Date(ex.created_at).toLocaleDateString('ja-JP')}</td>
-            <td>${this.escape(ex.profiles?.name || 'N/A')}</td>
-            <td>${this.escape(ex.sponsor_items?.name || 'N/A')}</td>
-            <td>${ex.points_spent}</td>
+        const rows = this.filteredExchanges.map(ex => `
+          <tr>
+            <td>${this.shortDate(ex.created_at)}</td>
+            <td>${this.escape(ex.profiles?.name || '-')}<div class="text-muted">${this.escape(ex.profiles?.email || '')}</div></td>
+            <td>${this.escape(ex.sponsor_items?.name || ex.prize_name || '-')}</td>
+            <td>${this.typeLabel(ex.type)}</td>
+            <td>${this.formatPoints(ex.points_spent)}</td>
             <td><span class="status-badge status-${ex.status}">${this.statusLabel(ex.status)}</span></td>
-            <td><button class="btn btn-secondary btn-small" onclick="app.showExchangeModal('${ex.id}'); event.stopPropagation();">詳細</button></td>
+            <td><button class="btn btn-secondary btn-small" onclick="app.showExchangeModal('${ex.id}')">詳細・発送</button></td>
           </tr>
-          <tr class="details-row" id="details-${ex.id}">
-            <td colspan="7">
-              <div class="details-content">
-                <strong>配送先:</strong> ${this.escape(ex.shipping_name || '')}<br>
-                <strong>住所:</strong> ${this.escape(ex.shipping_address || '')}<br>
-                <strong>電話:</strong> ${this.escape(ex.shipping_phone || '')}<br>
-                <strong>配送方法:</strong> ${ex.delivery_type || 'N/A'}<br>
-                <strong>備考:</strong> ${this.escape(ex.admin_note || '')}
-              </div>
-            </td>
-          </tr>
-        `).join('') || '<tr><td colspan="7" style="text-align: center; color: #9ca3af;">データなし</td></tr>';
+        `).join('');
+        tbody.innerHTML = rows || '<tr><td colspan="7" class="empty">該当する交換がありません</td></tr>';
       },
 
-      toggleExchangeDetails(id) {
-        const row = document.getElementById('details-' + id);
-        const icon = document.getElementById('icon-' + id);
-        if (row.classList.contains('show')) {
-          row.classList.remove('show');
-          icon.classList.remove('expanded');
-        } else {
-          row.classList.add('show');
-          icon.classList.add('expanded');
-        }
-      },
-
-      async showExchangeModal(exchangeId) {
+      async showExchangeModal(exId) {
         try {
-          const { data } = await db.from('point_exchanges').select(`*,
+          const { data, error } = await db.from('point_exchanges').select(`
+            *,
             profiles:user_id(name, email),
-            sponsor_items:item_id(name, description)
-          `).eq('id', exchangeId).single();
+            sponsor_items:item_id(name, description, delivery_type)
+          `).eq('id', exId).maybeSingle();
+          if (error) throw error;
+          this.currentExchangeId = exId;
+          this.currentExchangeRow = data;
+          const deliveryType = data.delivery_type || data.sponsor_items?.delivery_type || 'digital';
+          document.getElementById('exchangeStatus').value = data.status || 'pending';
+          document.getElementById('exchangeAdminNote').value = data.admin_note || '';
+          document.getElementById('exchangeGiftCode').value = data.gift_code || '';
+          document.getElementById('exchangeGiftCodeGroup').style.display = deliveryType === 'digital' ? '' : 'none';
 
-          this.currentExchangeId = exchangeId;
-          document.getElementById('exchangeStatus').value = data.status;
           document.getElementById('exchangeDetails').innerHTML = `
-            <p><strong>ユーザー:</strong> ${this.escape(data.profiles?.name || 'N/A')}</p>
-            <p><strong>商品:</strong> ${this.escape(data.sponsor_items?.name || 'N/A')}</p>
-            <p><strong>ポイント:</strong> ${data.points_spent}</p>
-            <p><strong>配送先:</strong> ${this.escape(data.shipping_name || '')}</p>
-            <p><strong>住所:</strong> ${this.escape(data.shipping_address || '')}</p>
-            <p><strong>電話:</strong> ${this.escape(data.shipping_phone || '')}</p>
-            <p><strong>配送方法:</strong> ${data.delivery_type || 'N/A'}</p>
-            <p><strong>ギフトコード:</strong> ${this.escape(data.gift_code || 'N/A')}</p>
+            <p><strong>ユーザー:</strong> ${this.escape(data.profiles?.name || '-')} <span class="text-muted">${this.escape(data.profiles?.email || '')}</span></p>
+            <p><strong>商品:</strong> ${this.escape(data.sponsor_items?.name || data.prize_name || '-')}</p>
+            <p><strong>種別:</strong> ${this.typeLabel(data.type)}</p>
+            <p><strong>消費ポイント:</strong> ${this.formatPoints(data.points_spent)}</p>
+            <p><strong>申請日:</strong> ${this.shortDateTime(data.created_at)}</p>
+            <p><strong>配送タイプ:</strong> ${deliveryType === 'physical' ? '物理' : 'デジタル'}</p>
+            ${deliveryType === 'physical' ? `
+              <p><strong>配送先:</strong> ${this.escape(data.shipping_name || '')}</p>
+              <p><strong>郵便番号:</strong> ${this.escape(data.shipping_zip || '')}</p>
+              <p><strong>住所:</strong> ${this.escape((data.shipping_prefecture || '') + (data.shipping_city || '') + (data.shipping_address || '') + ' ' + (data.shipping_building || ''))}</p>
+              <p><strong>電話:</strong> ${this.escape(data.shipping_phone || '')}</p>
+            ` : ''}
+            ${data.fulfilled_at ? `<p><strong>処理日時:</strong> ${this.shortDateTime(data.fulfilled_at)}</p>` : ''}
           `;
           document.getElementById('exchangeModal').classList.add('active');
-        } catch (e) {
-          alert('エラー: ' + e.message);
-        }
+        } catch (e) { this.handleErr('交換詳細の取得', e); }
       },
 
       async updateExchangeStatus() {
         try {
           const status = document.getElementById('exchangeStatus').value;
-          await db.from('point_exchanges').update({ status }).eq('id', this.currentExchangeId);
-          this.closeModal('exchangeModal');
-          this.loadExchanges();
-        } catch (e) {
-          alert('エラー: ' + e.message);
-        }
-      },
-
-      async exportExchangesCSV() {
-        const csv = [
-          ['ID', '申請日', 'ユーザー', '商品', 'ポイント', 'ステータス', '配送先', '住所', '電話'].join(','),
-          ...this.allExchanges.map(ex => [
-            ex.id,
-            new Date(ex.created_at).toLocaleDateString('ja-JP'),
-            ex.profiles?.name || '',
-            ex.sponsor_items?.name || '',
-            ex.points_spent,
-            this.statusLabel(ex.status),
-            ex.shipping_name || '',
-            ex.shipping_address || '',
-            ex.shipping_phone || ''
-          ].map(v => `"${(v + '').replace(/"/g, '""')}"`).join(','))
-        ].join('\n');
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'exchanges_' + new Date().toISOString().split('T')[0] + '.csv';
-        link.click();
-      },
-
-      statusLabel(status) {
-        const labels = { pending: '未処理', shipped: '発送済', completed: '完了', cancelled: 'キャンセル' };
-        return labels[status] || status;
-      },
-
-      async loadOrganizers() {
-        try {
-          const statusFilter = document.getElementById('orgStatusFilter')?.value || 'all';
-          let query = db.from('organizer_applications').select('*, profiles:user_id(name, email)').order('applied_at', { ascending: false });
-          if (statusFilter !== 'all') query = query.eq('status', statusFilter);
-
-          const { data, error } = await query;
+          const adminNote = document.getElementById('exchangeAdminNote').value.trim() || null;
+          const giftCode = document.getElementById('exchangeGiftCode').value.trim() || null;
+          const updates = {
+            status: status,
+            admin_note: adminNote,
+            gift_code: giftCode,
+          };
+          if (status === 'shipped' || status === 'completed' || status === 'cancelled') {
+            updates.fulfilled_at = new Date().toISOString();
+            updates.fulfilled_by = this.currentUser.id;
+          }
+          const { error } = await db.from('point_exchanges').update(updates).eq('id', this.currentExchangeId);
           if (error) throw error;
 
-          const countEl = document.getElementById('orgCount');
-          if (countEl) countEl.textContent = '（' + (data?.length || 0) + ' 件）';
+          // ステータス更新の通知をユーザーに送る
+          if (this.currentExchangeRow && status === 'shipped') {
+            await db.from('notifications').insert({
+              user_id: this.currentExchangeRow.user_id,
+              type: 'sponsor_item',
+              title: '発送のお知らせ',
+              body: (this.currentExchangeRow.sponsor_items?.name || this.currentExchangeRow.prize_name || '商品') + ' を発送しました。',
+              data: { exchange_id: this.currentExchangeId }
+            });
+          }
 
-          const statusLabels = { pending: '未処理', approved: '承認済み', rejected: '却下済み' };
-          const statusColors = {
-            pending: 'background:#fef3c7;color:#92400e;',
-            approved: 'background:#dcfce7;color:#166534;',
-            rejected: 'background:#fee2e2;color:#991b1b;'
-          };
+          this.closeModal('exchangeModal');
+          this.toast('更新しました', 'success');
+          this.loadExchanges();
+        } catch (e) { this.handleErr('交換の更新', e); }
+      },
 
-          const table = document.getElementById('organizersTable');
-          table.innerHTML = (data || []).map(function(a) {
-            const isPending = a.status === 'pending';
-            const xLink = a.x_account ? '<a href="https://x.com/' + app.escape(a.x_account) + '" target="_blank" style="color:#3b82f6;">@' + app.escape(a.x_account) + '</a>' : '-';
-            const tonamelLink = a.tonamel_url ? '<a href="' + app.escape(a.tonamel_url) + '" target="_blank" style="color:#3b82f6;">リンク</a>' : '-';
-            return '<tr>' +
-              '<td>' + app.escape(a.profiles?.name || '未設定') + '</td>' +
-              '<td>' + app.escape(a.profiles?.email || '-') + '</td>' +
-              '<td>' + xLink + '</td>' +
-              '<td>' + tonamelLink + '</td>' +
-              '<td>' + (a.applied_at ? new Date(a.applied_at).toLocaleDateString('ja-JP') : '-') + '</td>' +
-              '<td><span class="status-badge" style="' + (statusColors[a.status] || '') + '">' + (statusLabels[a.status] || a.status) + '</span></td>' +
-              '<td>' + (isPending
-                ? '<div class="btn-group"><button class="btn btn-success btn-small" onclick="app.approveApplication(\'' + a.id + '\')">承認</button><button class="btn btn-danger btn-small" onclick="app.rejectApplication(\'' + a.id + '\')">却下</button></div>'
-                : '<span style="color:#9ca3af;font-size:12px;">処理済み</span>') +
-              '</td></tr>';
-          }).join('') || '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:40px;">申請はありません</td></tr>';
-        } catch (e) {
-          console.error('Organizers load error:', e);
-          alert('主催者申請の読み込みエラー: ' + e.message);
-        }
+      exportExchangesCSV() {
+        const csv = [
+          ['ID', '申請日', 'ユーザー', 'メール', '商品', '種別', 'ポイント', 'ステータス', '配送名', '住所', '電話', 'ギフトコード', '管理メモ'].join(','),
+          ...this.filteredExchanges.map(ex => [
+            ex.id, this.shortDate(ex.created_at),
+            ex.profiles?.name || '', ex.profiles?.email || '',
+            ex.sponsor_items?.name || ex.prize_name || '',
+            this.typeLabel(ex.type),
+            ex.points_spent, this.statusLabel(ex.status),
+            ex.shipping_name || '',
+            (ex.shipping_prefecture || '') + (ex.shipping_city || '') + (ex.shipping_address || ''),
+            ex.shipping_phone || '', ex.gift_code || '', ex.admin_note || ''
+          ].map(v => `"${(v + '').replace(/"/g, '""')}"`).join(','))
+        ].join('\n');
+        const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'exchanges_' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+      },
+
+      // ============ 主催者申請 ============
+      async loadOrganizers() {
+        try {
+          const status = document.getElementById('orgStatusFilter').value;
+          let q = db.from('organizer_applications').select('*, profiles:user_id(name, email)').order('applied_at', { ascending: false });
+          if (status !== 'all') q = q.eq('status', status);
+          const { data, error } = await q;
+          if (error) throw error;
+          document.getElementById('orgCount').textContent = '（' + (data?.length || 0) + ' 件）';
+          const rows = (data || []).map(a => `
+            <tr>
+              <td>${this.escape(a.profiles?.name || '未設定')}</td>
+              <td class="truncate">${this.escape(a.profiles?.email || '-')}</td>
+              <td>${a.x_account ? '<a href="https://x.com/' + this.escape(a.x_account) + '" target="_blank" style="color:#3b82f6;">@' + this.escape(a.x_account) + '</a>' : '-'}</td>
+              <td>${a.tonamel_url ? '<a href="' + this.escape(a.tonamel_url) + '" target="_blank" style="color:#3b82f6;">リンク</a>' : '-'}</td>
+              <td>${this.shortDate(a.applied_at)}</td>
+              <td><span class="status-badge status-${a.status}">${this.statusLabel(a.status)}</span></td>
+              <td>${a.status === 'pending'
+                ? '<div class="btn-group"><button class="btn btn-success btn-small" onclick="app.approveApplication(\'' + a.id + '\')">承認</button><button class="btn btn-danger btn-small" onclick="app.openRejectModal(\'' + a.id + '\')">却下</button></div>'
+                : '<span class="text-muted">処理済み</span>'}</td>
+            </tr>
+          `).join('');
+          document.getElementById('organizersTable').innerHTML = rows || '<tr><td colspan="7" class="empty">申請がありません</td></tr>';
+        } catch (e) { this.handleErr('主催者申請の読み込み', e); }
       },
 
       async approveApplication(appId) {
         if (!confirm('この申請を承認しますか？')) return;
         try {
-          const { data: appData, error: fetchErr } = await db.from('organizer_applications').select('user_id').eq('id', appId).single();
-          if (fetchErr) throw fetchErr;
-
-          const { error: updateErr } = await db.from('organizer_applications').update({
-            status: 'approved',
-            reviewed_at: new Date().toISOString(),
-            reviewed_by: this.currentUser?.id || null
-          }).eq('id', appId);
-          if (updateErr) throw updateErr;
-
-          const { error: profileErr } = await db.from('profiles').update({
-            is_organizer: true,
-            organizer_status: 'approved'
-          }).eq('id', appData.user_id);
-          if (profileErr) throw profileErr;
-
-          alert('承認しました');
+          const { data: app1, error: e1 } = await db.from('organizer_applications').select('user_id').eq('id', appId).maybeSingle();
+          if (e1) throw e1;
+          const { error: e2 } = await db.from('organizer_applications').update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: this.currentUser.id }).eq('id', appId);
+          if (e2) throw e2;
+          await db.rpc('admin_set_user_role', { p_target_user_id: app1.user_id, p_role: 'organizer', p_granted: true });
+          // 承認通知
+          await db.from('notifications').insert({
+            user_id: app1.user_id, type: 'system',
+            title: '主催者申請が承認されました',
+            body: 'マイページから主催者向け機能を利用できるようになりました。'
+          });
+          this.toast('承認しました', 'success');
           this.loadOrganizers();
-        } catch (e) {
-          alert('承認エラー: ' + (e.message || JSON.stringify(e)));
-          console.error('Approve error:', e);
-        }
+        } catch (e) { this.handleErr('承認', e); }
       },
 
-      async rejectApplication(appId) {
-        const reason = prompt('却下理由を入力してください（任意）：');
-        if (reason === null) return;
+      openRejectModal(appId) {
+        this.currentRejectAppId = appId;
+        document.getElementById('rejectReason').value = '';
+        document.getElementById('rejectModal').classList.add('active');
+      },
+
+      async confirmRejectApplication() {
+        const reason = document.getElementById('rejectReason').value.trim();
         try {
-          const { data: appData, error: fetchErr } = await db.from('organizer_applications').select('user_id').eq('id', appId).single();
-          if (fetchErr) throw fetchErr;
-
-          const { error: updateErr } = await db.from('organizer_applications').update({
-            status: 'rejected',
-            reason: reason || null,
-            reviewed_at: new Date().toISOString(),
-            reviewed_by: this.currentUser?.id || null
+          const appId = this.currentRejectAppId;
+          const { data: app1, error: e1 } = await db.from('organizer_applications').select('user_id').eq('id', appId).maybeSingle();
+          if (e1) throw e1;
+          const { error: e2 } = await db.from('organizer_applications').update({
+            status: 'rejected', reason: reason || null, reviewed_at: new Date().toISOString(), reviewed_by: this.currentUser.id
           }).eq('id', appId);
-          if (updateErr) throw updateErr;
-
-          await db.from('profiles').update({
-            organizer_status: 'rejected'
-          }).eq('id', appData.user_id);
-
-          alert('却下しました');
+          if (e2) throw e2;
+          await db.from('profiles').update({ organizer_status: 'rejected' }).eq('id', app1.user_id);
+          this.closeModal('rejectModal');
+          this.toast('却下しました', 'success');
           this.loadOrganizers();
-        } catch (e) {
-          alert('却下エラー: ' + (e.message || JSON.stringify(e)));
-          console.error('Reject error:', e);
-        }
+        } catch (e) { this.handleErr('却下', e); }
       },
 
-      allUsers: [],
+      // ============ レビュー管理 ============
+      async loadReviews() {
+        try {
+          const ratingFilter = document.getElementById('reviewRatingFilter').value;
+          let q = db.from('organizer_reviews').select(`
+            *,
+            organizer:organizer_id(name, email),
+            reviewer:reviewer_id(name, email)
+          `).order('created_at', { ascending: false }).limit(500);
+          if (ratingFilter !== 'all') q = q.eq('rating', parseInt(ratingFilter, 10));
+          const { data, error } = await q;
+          if (error) throw error;
+          document.getElementById('reviewCount').textContent = '（' + (data?.length || 0) + ' 件）';
+          const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+          const rows = (data || []).map(r => `
+            <tr>
+              <td>${this.shortDate(r.created_at)}</td>
+              <td>${this.escape(r.organizer?.name || '-')}<div class="text-muted">${this.escape(r.organizer?.email || '')}</div></td>
+              <td>${this.escape(r.reviewer?.name || '-')}</td>
+              <td><span style="color:#fbbf24;font-weight:bold;">${stars(r.rating)}</span></td>
+              <td class="truncate" style="max-width:300px;">${this.escape(r.comment || '')}</td>
+              <td><button class="btn btn-danger btn-small" onclick="app.deleteReview('${r.id}')">削除</button></td>
+            </tr>
+          `).join('');
+          document.getElementById('reviewsTable').innerHTML = rows || '<tr><td colspan="6" class="empty">レビューがありません</td></tr>';
+        } catch (e) { this.handleErr('レビューの読み込み', e); }
+      },
 
+      async deleteReview(reviewId) {
+        if (!confirm('このレビューを削除しますか？評価平均が再計算されます。')) return;
+        try {
+          const { error } = await db.rpc('admin_delete_review', { p_review_id: reviewId });
+          if (error) throw error;
+          this.toast('削除しました', 'success');
+          this.loadReviews();
+        } catch (e) { this.handleErr('レビュー削除', e); }
+      },
+
+      // ============ ユーザー管理 ============
       async loadUsers() {
         try {
-          let all = [];
-          let from = 0;
-          const batchSize = 1000;
+          let all = []; let from = 0; const batch = 1000;
           while (true) {
-            const { data, error } = await db.from('profiles').select('*').range(from, from + batchSize - 1).order('created_at', { ascending: false });
+            const { data, error } = await db.from('profiles').select('*').order('created_at', { ascending: false }).range(from, from + batch - 1);
             if (error) throw error;
             if (!data || data.length === 0) break;
             all = all.concat(data);
-            if (data.length < batchSize) break;
-            from += batchSize;
+            if (data.length < batch) break;
+            from += batch;
           }
           this.allUsers = all;
-          const countEl = document.getElementById('userCount');
-          if (countEl) countEl.textContent = '（全 ' + all.length + ' 人）';
+          document.getElementById('userCount').textContent = '（全 ' + all.length + ' 人）';
           this.filterAndRenderUsers();
-        } catch (e) {
-          console.error('Users load error:', e);
-        }
+        } catch (e) { this.handleErr('ユーザーの読み込み', e); }
       },
 
       filterAndRenderUsers() {
-        const query = (document.getElementById('userSearch')?.value || '').toLowerCase();
-        const roleFilter = document.getElementById('userRoleFilter')?.value || 'all';
-        const sortKey = document.getElementById('userSort')?.value || 'created_desc';
-
+        const q = (document.getElementById('userSearch').value || '').toLowerCase();
+        const role = document.getElementById('userRoleFilter').value;
+        const sort = document.getElementById('userSort').value;
         let users = this.allUsers.slice();
+        if (q) users = users.filter(u =>
+          (u.name || '').toLowerCase().includes(q) ||
+          (u.email || '').toLowerCase().includes(q) ||
+          (u.id || '').toLowerCase().includes(q));
+        if (role === 'admin') users = users.filter(u => u.is_admin);
+        else if (role === 'organizer') users = users.filter(u => u.is_organizer);
+        else if (role === 'premium') users = users.filter(u => u.is_premium);
+        else if (role === 'banned') users = users.filter(u => u.is_banned);
+        if (sort === 'created_desc') users.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        else if (sort === 'created_asc') users.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        else if (sort === 'points_desc') users.sort((a, b) => (b.points || 0) - (a.points || 0));
+        else if (sort === 'points_asc') users.sort((a, b) => (a.points || 0) - (b.points || 0));
+        else if (sort === 'name_asc') users.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
-        // フィルター
-        if (query) {
-          users = users.filter(u =>
-            (u.name || '').toLowerCase().includes(query) ||
-            (u.email || '').toLowerCase().includes(query) ||
-            (u.id || '').toLowerCase().includes(query)
-          );
-        }
-        if (roleFilter === 'admin') users = users.filter(u => u.is_admin);
-        else if (roleFilter === 'organizer') users = users.filter(u => u.is_organizer);
-        else if (roleFilter === 'premium') users = users.filter(u => u.is_premium);
-        else if (roleFilter === 'banned') users = users.filter(u => u.is_banned);
-
-        // ソート
-        if (sortKey === 'created_desc') users.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        else if (sortKey === 'created_asc') users.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-        else if (sortKey === 'points_desc') users.sort((a, b) => (b.points || 0) - (a.points || 0));
-        else if (sortKey === 'points_asc') users.sort((a, b) => (a.points || 0) - (b.points || 0));
-        else if (sortKey === 'name_asc') users.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
-        const table = document.getElementById('usersTable');
-        table.innerHTML = users.map(user => {
-          const rowBg = user.is_banned ? 'background: #fef2f2;' : '';
-          return '<tr style="' + rowBg + '">' +
-            '<td>' + this.escape((user.id || '').substring(0, 8)) + '</td>' +
-            '<td>' + this.escape(user.name || '未設定') + (user.is_premium ? ' <span style="color:#7c3aed;font-size:11px;">★Premium</span>' : '') + '</td>' +
-            '<td>' + this.escape(user.email || '-') + '</td>' +
-            '<td>' + (user.points || 0).toLocaleString() + '</td>' +
-            '<td>' + new Date(user.created_at).toLocaleDateString('ja-JP') + '</td>' +
-            '<td><input type="checkbox" ' + (user.is_organizer ? 'checked' : '') + ' onchange="app.toggleOrganizerPermission(\'' + user.id + '\', this.checked)"></td>' +
-            '<td><input type="checkbox" ' + (user.is_admin ? 'checked' : '') + ' onchange="app.toggleAdminPermission(\'' + user.id + '\', this.checked)"></td>' +
-            '<td><div class="btn-group">' +
-              '<button class="btn btn-primary btn-small" onclick="app.showUserDetails(\'' + user.id + '\')">詳細</button>' +
-              (user.is_banned
-                ? '<button class="btn btn-success btn-small" onclick="app.unbanUser(\'' + user.id + '\')">解除</button>'
-                : '<button class="btn btn-danger btn-small" onclick="app.showBanModal(\'' + user.id + '\')">BAN</button>') +
-            '</div></td>' +
-          '</tr>';
-        }).join('') || '<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:40px;">ユーザーが見つかりません</td></tr>';
+        const rows = users.map(u => {
+          const badges = [];
+          if (u.is_admin) badges.push('<span class="badge-pill badge-admin">管理者</span>');
+          if (u.is_organizer) badges.push('<span class="badge-pill badge-organizer">主催者</span>');
+          if (u.is_premium) badges.push('<span class="badge-pill badge-premium">Premium</span>');
+          if (u.is_banned) badges.push('<span class="badge-pill badge-banned">BAN</span>');
+          return `
+            <tr class="${u.is_banned ? 'banned' : ''}">
+              <td class="id-cell">${this.escape((u.id || '').substring(0, 8))}</td>
+              <td>${this.escape(u.name || '未設定')}${badges.join('')}</td>
+              <td class="truncate">${this.escape(u.email || '-')}</td>
+              <td>${this.formatPoints(u.points)}</td>
+              <td>${this.shortDate(u.created_at)}</td>
+              <td>
+                <label class="checkbox-label" style="font-size:11px;"><input type="checkbox" ${u.is_organizer ? 'checked' : ''} onchange="app.toggleRole('${u.id}','organizer',this.checked)"> 主催</label>
+                <label class="checkbox-label" style="font-size:11px;"><input type="checkbox" ${u.is_admin ? 'checked' : ''} onchange="app.toggleRole('${u.id}','admin',this.checked)"> 管理</label>
+              </td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-primary btn-small" onclick="app.showUserDetails('${u.id}')">詳細</button>
+                  ${u.is_banned
+                    ? '<button class="btn btn-success btn-small" onclick="app.unbanUser(\'' + u.id + '\')">解除</button>'
+                    : '<button class="btn btn-danger btn-small" onclick="app.openBanModal(\'' + u.id + '\')">BAN</button>'}
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
+        document.getElementById('usersTable').innerHTML = rows || '<tr><td colspan="7" class="empty">該当するユーザーがいません</td></tr>';
       },
 
-      async toggleOrganizerPermission(userId, isGranted) {
-        if (!confirm(isGranted ? '主催者権限を付与しますか？' : '主催者権限を取り消しますか？')) {
+      async toggleRole(userId, role, granted) {
+        const label = role === 'admin' ? '管理者' : '主催者';
+        if (!confirm((granted ? label + '権限を付与' : label + '権限を取り消し') + 'しますか？')) {
           this.filterAndRenderUsers();
           return;
         }
         try {
-          const { error } = await db.from('profiles').update({ is_organizer: isGranted, organizer_status: isGranted ? 'approved' : 'none' }).eq('id', userId);
+          const { error } = await db.rpc('admin_set_user_role', { p_target_user_id: userId, p_role: role, p_granted: granted });
           if (error) throw error;
-          const idx = this.allUsers.findIndex(u => u.id === userId);
-          if (idx >= 0) { this.allUsers[idx].is_organizer = isGranted; this.allUsers[idx].organizer_status = isGranted ? 'approved' : 'none'; }
+          const u = this.allUsers.find(x => x.id === userId);
+          if (u) {
+            if (role === 'admin') u.is_admin = granted;
+            else { u.is_organizer = granted; u.organizer_status = granted ? 'approved' : 'none'; }
+          }
+          this.toast('権限を更新しました', 'success');
           this.filterAndRenderUsers();
         } catch (e) {
-          alert('権限変更エラー: ' + (e.message || JSON.stringify(e)));
+          this.handleErr('権限変更', e);
           this.filterAndRenderUsers();
         }
       },
 
-      async toggleAdminPermission(userId, isGranted) {
-        if (!confirm(isGranted ? '管理者権限を付与しますか？この操作は慎重に行ってください。' : '管理者権限を取り消しますか？')) {
-          this.filterAndRenderUsers();
-          return;
-        }
-        try {
-          const { error } = await db.from('profiles').update({ is_admin: isGranted }).eq('id', userId);
-          if (error) throw error;
-          const idx = this.allUsers.findIndex(u => u.id === userId);
-          if (idx >= 0) this.allUsers[idx].is_admin = isGranted;
-          this.filterAndRenderUsers();
-        } catch (e) {
-          alert('権限変更エラー: ' + (e.message || JSON.stringify(e)));
-          this.filterAndRenderUsers();
-        }
-      },
-
-      async showUserDetails(userId) {
-        try {
-          const { data: user } = await db.from('profiles').select('*').eq('id', userId).single();
-          this.currentUserId = userId;
-
-          const { data: exchanges } = await db.from('point_exchanges').select('id').eq('user_id', userId);
-          const { data: adViews } = await db.from('ad_views').select('id').eq('user_id', userId);
-
-          document.getElementById('userDetailsContent').innerHTML = `
-            <p><strong>ユーザー名:</strong> ${this.escape(user.name)}</p>
-            <p><strong>メール:</strong> ${this.escape(user.email)}</p>
-            <p><strong>ポイント:</strong> ${user.points || 0}</p>
-            <p><strong>レベル:</strong> ${user.level || 1}</p>
-            <p><strong>プレミアム:</strong> ${user.is_premium ? 'はい (' + (user.premium_type || 'N/A') + ')' : 'いいえ'}</p>
-            <p><strong>オーガナイザー:</strong> ${user.is_organizer ? 'はい' : 'いいえ'}</p>
-            <p><strong>管理者:</strong> ${user.is_admin ? 'はい' : 'いいえ'}</p>
-            <p><strong>バン:</strong> ${user.is_banned ? 'はい (' + this.escape(user.ban_reason || '') + ')' : 'いいえ'}</p>
-            <p><strong>交換回数:</strong> ${exchanges?.length || 0}</p>
-            <p><strong>広告視聴数:</strong> ${adViews?.length || 0}</p>
-            <p><strong>登録日:</strong> ${new Date(user.created_at).toLocaleDateString('ja-JP')}</p>
-          `;
-          document.getElementById('userDetailsModal').classList.add('active');
-        } catch (e) {
-          alert('エラー: ' + e.message);
-        }
-      },
-
-      showBanModal(userId) {
+      openBanModal(userId) {
+        const u = this.allUsers.find(x => x.id === userId);
         this.currentBanUserId = userId;
+        document.getElementById('banModalUserInfo').innerHTML = u ? this.escape(u.name || '') + ' / ' + this.escape(u.email || '') : userId;
         document.getElementById('banReason').value = '';
         document.getElementById('banModal').classList.add('active');
       },
 
       async banUser() {
+        const reason = document.getElementById('banReason').value.trim();
+        if (!reason) { alert('BAN 理由は必須です。'); return; }
         try {
-          const reason = document.getElementById('banReason').value;
-          await db.from('profiles').update({ is_banned: true, ban_reason: reason }).eq('id', this.currentBanUserId);
+          const { error } = await db.rpc('admin_set_user_ban', { p_target_user_id: this.currentBanUserId, p_is_banned: true, p_reason: reason });
+          if (error) throw error;
           this.closeModal('banModal');
+          this.toast('BAN しました', 'success');
           this.loadUsers();
-        } catch (e) {
-          alert('エラー: ' + e.message);
-        }
+        } catch (e) { this.handleErr('BAN', e); }
       },
 
       async unbanUser(userId) {
+        if (!confirm('BAN を解除しますか？')) return;
         try {
-          await db.from('profiles').update({ is_banned: false, ban_reason: null }).eq('id', userId);
+          const { error } = await db.rpc('admin_set_user_ban', { p_target_user_id: userId, p_is_banned: false, p_reason: null });
+          if (error) throw error;
+          this.toast('BAN を解除しました', 'success');
           this.loadUsers();
-        } catch (e) {
-          alert('エラー: ' + e.message);
-        }
+        } catch (e) { this.handleErr('BAN 解除', e); }
       },
 
-      async loadRevenue() {
+      async showUserDetails(userId) {
         try {
-          const [adViews, premiumUsers, totalPoints, todayPoints, loginBonusPoints, spentPoints] = await Promise.all([
-            db.from('ad_views').select('points_earned'),
-            db.from('profiles').select('id').eq('is_premium', true),
-            db.from('profiles').select('points'),
-            db.from('ad_views').select('points_earned').gte('viewed_at', new Date().toDateString()),
-            db.from('daily_login_bonuses').select('bonus_points'),
-            db.from('point_exchanges').select('points_spent')
+          this.currentBanUserId = userId; // 補正用にも流用
+          const [userRes, exRes, adRes, lvRes] = await Promise.all([
+            db.from('profiles').select('*').eq('id', userId).maybeSingle(),
+            db.from('point_exchanges').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+            db.from('ad_views').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+            db.from('lottery_entries').select('id', { count: 'exact', head: true }).eq('user_id', userId).then(r => r).catch(() => ({ count: 0 })),
           ]);
+          const u = userRes.data;
+          if (!u) throw new Error('ユーザーが見つかりません');
+          document.getElementById('userDetailsContent').innerHTML = `
+            <p><strong>ID:</strong> <span class="id-cell">${this.escape(u.id)}</span></p>
+            <p><strong>名前:</strong> ${this.escape(u.name || '未設定')}</p>
+            <p><strong>メール:</strong> ${this.escape(u.email || '-')}</p>
+            <p><strong>ポイント:</strong> ${this.formatPoints(u.points)}</p>
+            <p><strong>レベル / 経験値:</strong> Lv.${u.level || 1} / ${this.formatPoints(u.experience)} EXP</p>
+            <p><strong>プレミアム:</strong> ${u.is_premium ? 'はい (' + this.escape(u.premium_type || '') + ')' : 'いいえ'}</p>
+            <p><strong>主催者:</strong> ${u.is_organizer ? 'はい' : 'いいえ'} (status: ${this.escape(u.organizer_status || 'none')})</p>
+            <p><strong>管理者:</strong> ${u.is_admin ? 'はい' : 'いいえ'}</p>
+            <p><strong>BAN:</strong> ${u.is_banned ? 'はい (' + this.escape(u.ban_reason || '') + ')' : 'いいえ'}</p>
+            <p><strong>招待コード:</strong> <span class="id-cell">${this.escape(u.referral_code || '-')}</span></p>
+            <p><strong>登録日:</strong> ${this.shortDate(u.created_at)}</p>
+            <p><strong>交換回数:</strong> ${exRes.count || 0}</p>
+            <p><strong>広告視聴:</strong> ${adRes.count || 0}</p>
+            <p><strong>抽選応募:</strong> ${lvRes.count || 0}</p>
+          `;
+          document.getElementById('adjustPointsDelta').value = '';
+          document.getElementById('adjustPointsReason').value = '';
+          document.getElementById('userDetailsModal').classList.add('active');
+        } catch (e) { this.handleErr('ユーザー詳細', e); }
+      },
 
-          const totalAdPoints = adViews.data?.reduce((s, v) => s + (v.points_earned || 50), 0) || 0;
-          const totalPts = totalPoints.data?.reduce((s, p) => s + (p.points || 0), 0) || 0;
-          const todayPts = todayPoints.data?.reduce((s, v) => s + (v.points_earned || 50), 0) || 0;
-          const loginBns = loginBonusPoints.data?.reduce((s, v) => s + (v.bonus_points || 0), 0) || 0;
-          const spentPts = spentPoints.data?.reduce((s, v) => s + (v.points_spent || 0), 0) || 0;
+      async adjustUserPoints() {
+        const delta = parseInt(document.getElementById('adjustPointsDelta').value, 10);
+        const reason = document.getElementById('adjustPointsReason').value.trim();
+        if (!delta) { alert('増減量を入力してください'); return; }
+        if (!reason) { alert('理由を入力してください（監査ログに残ります）'); return; }
+        if (!confirm((delta > 0 ? '+' : '') + delta + ' pt を補正します。よろしいですか？')) return;
+        try {
+          const { data, error } = await db.rpc('admin_adjust_user_points', {
+            p_target_user_id: this.currentBanUserId,
+            p_delta: delta,
+            p_reason: reason
+          });
+          if (error) throw error;
+          this.toast('補正しました（補正後: ' + this.formatPoints(data) + ' pt）', 'success');
+          this.closeModal('userDetailsModal');
+          this.loadUsers();
+        } catch (e) { this.handleErr('ポイント補正', e); }
+      },
 
-          const revenueContainer = document.getElementById('revenueContainer');
-          const html = `
-            <div class="section-title">広告統計</div>
+      // ============ 大会一覧 ============
+      async loadTournaments() {
+        try {
+          const { data, error } = await db.from('tournaments').select('*, profiles:created_by(name, email), entries(count)').order('date', { ascending: false }).limit(500);
+          if (error) throw error;
+          this.allTournaments = data || [];
+          document.getElementById('tournamentCount').textContent = '（全 ' + this.allTournaments.length + ' 件）';
+          this.renderTournaments();
+        } catch (e) { this.handleErr('大会の読み込み', e); }
+      },
+
+      renderTournaments() {
+        const q = (document.getElementById('tournamentSearch').value || '').toLowerCase();
+        const status = document.getElementById('tournamentStatusFilter').value;
+        let list = this.allTournaments.slice();
+        if (q) list = list.filter(t => (t.name || '').toLowerCase().includes(q) || (t.organizer || '').toLowerCase().includes(q));
+        if (status !== 'all') list = list.filter(t => t.status === status);
+        const rows = list.map(t => `
+          <tr>
+            <td>${this.shortDate(t.date)}</td>
+            <td class="truncate" style="max-width:240px;">${this.escape(t.name || '')}</td>
+            <td>${this.escape(t.game || '-')}</td>
+            <td>${this.escape(t.profiles?.name || t.organizer || '-')}</td>
+            <td>${(t.entries?.[0]?.count) ?? 0}${t.max_players ? '/' + t.max_players : ''}</td>
+            <td><span class="status-badge status-${t.status || 'upcoming'}">${this.statusLabel(t.status)}</span></td>
+            <td><button class="btn btn-danger btn-small" onclick="app.deleteTournament('${t.id}')">削除</button></td>
+          </tr>
+        `).join('');
+        document.getElementById('tournamentsTable').innerHTML = rows || '<tr><td colspan="7" class="empty">大会がありません</td></tr>';
+      },
+
+      async deleteTournament(id) {
+        if (!confirm('この大会を削除しますか？関連エントリー・結果も連動して削除されます。')) return;
+        try {
+          const { error } = await db.from('tournaments').delete().eq('id', id);
+          if (error) throw error;
+          this.toast('削除しました', 'success');
+          this.loadTournaments();
+        } catch (e) { this.handleErr('大会削除', e); }
+      },
+
+      // ============ リーグ一覧 ============
+      async loadLeagues() {
+        try {
+          const { data, error } = await db.from('leagues').select('*, profiles:created_by(name, email), league_participants(count)').order('created_at', { ascending: false }).limit(500);
+          if (error) throw error;
+          this.allLeagues = data || [];
+          document.getElementById('leagueCount').textContent = '（全 ' + this.allLeagues.length + ' 件）';
+          this.renderLeagues();
+        } catch (e) { this.handleErr('リーグの読み込み', e); }
+      },
+
+      renderLeagues() {
+        const q = (document.getElementById('leagueSearch').value || '').toLowerCase();
+        const status = document.getElementById('leagueStatusFilter').value;
+        let list = this.allLeagues.slice();
+        if (q) list = list.filter(l => (l.name || '').toLowerCase().includes(q) || (l.profiles?.name || '').toLowerCase().includes(q));
+        if (status !== 'all') list = list.filter(l => l.status === status);
+        const rows = list.map(l => `
+          <tr>
+            <td>${this.shortDate(l.created_at)}</td>
+            <td class="truncate" style="max-width:240px;">${this.escape(l.name || '')}${l.season_name ? '<div class="text-muted">' + this.escape(l.season_name) + '</div>' : ''}</td>
+            <td>${this.escape(l.game || '-')}</td>
+            <td>${this.escape(l.profiles?.name || '-')}</td>
+            <td>${(l.league_participants?.[0]?.count) ?? 0}</td>
+            <td><span class="status-badge status-${l.status || 'active'}">${this.statusLabel(l.status)}</span></td>
+            <td><button class="btn btn-danger btn-small" onclick="app.deleteLeague('${l.id}')">削除</button></td>
+          </tr>
+        `).join('');
+        document.getElementById('leaguesTable').innerHTML = rows || '<tr><td colspan="7" class="empty">リーグがありません</td></tr>';
+      },
+
+      async deleteLeague(id) {
+        if (!confirm('このリーグを削除しますか？関連ラウンド・結果・参加者・通知も連動して削除されます。')) return;
+        try {
+          const { error } = await db.from('leagues').delete().eq('id', id);
+          if (error) throw error;
+          this.toast('削除しました', 'success');
+          this.loadLeagues();
+        } catch (e) { this.handleErr('リーグ削除', e); }
+      },
+
+      // ============ お知らせ配信 ============
+      async loadBroadcast() {
+        await this.previewBroadcastTarget();
+        try {
+          const { data, error } = await db.from('admin_audit_logs').select('*, admin:admin_id(name)').eq('action', 'broadcast_notification').order('created_at', { ascending: false }).limit(20);
+          if (error) throw error;
+          const rows = (data || []).map(l => `
+            <tr>
+              <td>${this.shortDateTime(l.created_at)}</td>
+              <td>${this.escape(l.metadata?.target || '-')}</td>
+              <td class="truncate" style="max-width:300px;">${this.escape(l.metadata?.title || '-')}</td>
+              <td>${l.metadata?.count || 0} 人</td>
+            </tr>
+          `).join('');
+          document.getElementById('broadcastHistoryTable').innerHTML = rows || '<tr><td colspan="4" class="empty">送信履歴がありません</td></tr>';
+        } catch (e) { console.error(e); }
+      },
+
+      async previewBroadcastTarget() {
+        const target = document.getElementById('broadcastTarget').value;
+        try {
+          let q = db.from('profiles').select('id', { count: 'exact', head: true }).eq('is_banned', false);
+          if (target === 'admin') q = q.eq('is_admin', true);
+          else if (target === 'organizer') q = q.eq('is_organizer', true);
+          else if (target === 'premium') q = q.eq('is_premium', true);
+          const { count } = await q;
+          document.getElementById('broadcastTargetHint').textContent = '対象人数: 約 ' + (count || 0) + ' 人';
+        } catch (e) { /* silent */ }
+      },
+
+      async sendBroadcast() {
+        const target = document.getElementById('broadcastTarget').value;
+        const title = document.getElementById('broadcastTitle').value.trim();
+        const body = document.getElementById('broadcastBody').value.trim();
+        if (!title || !body) { alert('タイトルと本文は必須です'); return; }
+        if (!confirm('「' + title + '」を ' + target + ' に配信します。よろしいですか？\nこの操作は取り消せません。')) return;
+        try {
+          const { data, error } = await db.rpc('admin_broadcast_notification', {
+            p_title: title, p_body: body, p_target: target, p_data: {}, p_user_ids: null
+          });
+          if (error) throw error;
+          this.toast(data + ' 人に送信しました', 'success');
+          document.getElementById('broadcastTitle').value = '';
+          document.getElementById('broadcastBody').value = '';
+          this.loadBroadcast();
+        } catch (e) { this.handleErr('お知らせ配信', e); }
+      },
+
+      // ============ 収益・広告 ============
+      async loadRevenue() {
+        const c = document.getElementById('revenueContainer');
+        c.innerHTML = '<div class="alert alert-info">読み込み中...</div>';
+        try {
+          const todayStart = this.todayStartISO();
+          const monthStart = this.monthStartISO();
+          const [adAll, adMonth, adToday, premiumCount, totalPoints, loginAll, exchangeAll] = await Promise.all([
+            db.from('ad_views').select('points_earned'),
+            db.from('ad_views').select('id', { count: 'exact', head: true }).gte('viewed_at', monthStart),
+            db.from('ad_views').select('id', { count: 'exact', head: true }).gte('viewed_at', todayStart),
+            db.from('profiles').select('id', { count: 'exact', head: true }).eq('is_premium', true),
+            db.from('profiles').select('points'),
+            db.from('daily_login_bonuses').select('bonus_points'),
+            db.from('point_exchanges').select('points_spent'),
+          ]);
+          const adAllCount = adAll.data?.length || 0;
+          const adAllPts = (adAll.data || []).reduce((s, v) => s + (v.points_earned || 0), 0);
+          const totalPts = (totalPoints.data || []).reduce((s, p) => s + (p.points || 0), 0);
+          const loginPts = (loginAll.data || []).reduce((s, v) => s + (v.bonus_points || 0), 0);
+          const spentPts = (exchangeAll.data || []).reduce((s, v) => s + (v.points_spent || 0), 0);
+          const eCpm = 0.5; // 仮: 広告 1 視聴 = ¥0.5（適宜調整）
+          c.innerHTML = `
+            <div class="section-title">広告</div>
             <div class="stat-grid">
-              <div class="stat-card blue"><div class="stat-label">総広告視聴</div><div class="stat-value">${adViews.data?.length || 0}</div></div>
-              <div class="stat-card green"><div class="stat-label">広告獲得ポイント</div><div class="stat-value">${totalAdPoints.toLocaleString()}</div></div>
+              <div class="stat-card blue"><div class="stat-label">本日の広告視聴</div><div class="stat-value">${adToday.count || 0}</div></div>
+              <div class="stat-card blue"><div class="stat-label">今月の広告視聴</div><div class="stat-value">${adMonth.count || 0}</div></div>
+              <div class="stat-card blue"><div class="stat-label">累計広告視聴</div><div class="stat-value">${adAllCount}</div></div>
+              <div class="stat-card green"><div class="stat-label">今月の推定広告収益</div><div class="stat-value">¥${this.formatPoints(Math.floor((adMonth.count || 0) * eCpm))}</div></div>
             </div>
-
-            <div class="section-title">プレミアム・購入</div>
+            <div class="section-title">プレミアム</div>
             <div class="stat-grid">
-              <div class="stat-card blue"><div class="stat-label">プレミアムユーザー数</div><div class="stat-value">${premiumUsers.data?.length || 0}</div></div>
+              <div class="stat-card purple"><div class="stat-label">プレミアム会員数</div><div class="stat-value">${premiumCount.count || 0}</div></div>
             </div>
-
             <div class="section-title">ポイント経済</div>
             <div class="stat-grid">
-              <div class="stat-card green"><div class="stat-label">総流通ポイント</div><div class="stat-value">${totalPts.toLocaleString()}</div></div>
-              <div class="stat-card blue"><div class="stat-label">本日広告獲得</div><div class="stat-value">${todayPts}</div></div>
-              <div class="stat-card orange"><div class="stat-label">ログインボーナス</div><div class="stat-value">${loginBns.toLocaleString()}</div></div>
-              <div class="stat-card red"><div class="stat-label">交換済ポイント</div><div class="stat-value">${spentPts.toLocaleString()}</div></div>
+              <div class="stat-card green"><div class="stat-label">流通ポイント（残高合計）</div><div class="stat-value">${this.formatPoints(totalPts)}</div></div>
+              <div class="stat-card blue"><div class="stat-label">広告獲得（累計）</div><div class="stat-value">${this.formatPoints(adAllPts)}</div></div>
+              <div class="stat-card orange"><div class="stat-label">ログインボーナス（累計）</div><div class="stat-value">${this.formatPoints(loginPts)}</div></div>
+              <div class="stat-card red"><div class="stat-label">消費ポイント（累計）</div><div class="stat-value">${this.formatPoints(spentPts)}</div></div>
             </div>
           `;
-
-          revenueContainer.innerHTML = html;
         } catch (e) {
-          console.error('Revenue data error:', e);
-          document.getElementById('revenueContainer').innerHTML = '<div class="alert alert-error">データ読み込みエラー：' + e.message + '</div>';
+          this.handleErr('収益', e);
+          c.innerHTML = '<div class="alert alert-error">読み込みエラー: ' + this.escape(e.message) + '</div>';
         }
       },
 
-      closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('active');
+      // ============ 監査ログ ============
+      async loadAuditLogs() {
+        try {
+          const { data, error } = await db.from('admin_audit_logs').select('*, admin:admin_id(name, email), target:target_user_id(name, email)').order('created_at', { ascending: false }).limit(200);
+          if (error) throw error;
+          const rows = (data || []).map(l => `
+            <tr>
+              <td>${this.shortDateTime(l.created_at)}</td>
+              <td>${this.escape(l.admin?.name || l.admin?.email || '-')}</td>
+              <td><span class="status-badge status-active">${this.escape(l.action)}</span></td>
+              <td>${l.target ? this.escape(l.target.name || l.target.email || '-') : '-'}</td>
+              <td><pre style="font-size:11px;color:#6b7280;white-space:pre-wrap;margin:0;">${this.escape(JSON.stringify(l.metadata || {}, null, 0))}</pre></td>
+            </tr>
+          `).join('');
+          document.getElementById('auditLogsTable').innerHTML = rows || '<tr><td colspan="5" class="empty">ログがありません</td></tr>';
+        } catch (e) { this.handleErr('監査ログ', e); }
       },
-
-      escape(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      }
     };
 
     app.init();
