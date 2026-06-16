@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大会結果 - カドスケ！</title>
+
+<!-- OGP / SNSカード -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="カドスケ！">
+<meta property="og:title" content="大会結果 - カドスケ！">
+<meta property="og:description" content="カドスケ！の大会結果ページ。順位表・デッキ・勝敗をチェックしよう。">
+<meta property="og:image" content="https://guerrilladcg-boop.github.io/kadosuke/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="大会結果 - カドスケ！">
+<meta name="twitter:description" content="カドスケ！の大会結果ページ。順位表・デッキ・勝敗をチェックしよう。">
+<meta name="twitter:image" content="https://guerrilladcg-boop.github.io/kadosuke/ogp.png">
+
+<style>
+  :root{
+    --brand:#E85D26;
+    --brand-dark:#c44a1a;
+    --bg:#f5f3ef;
+    --card:#ffffff;
+    --text:#2b2b2b;
+    --muted:#888;
+    --line:#eee;
+    --gold:#f5b301;
+    --silver:#b7b7c2;
+    --bronze:#cd7f4d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN',Meiryo,sans-serif;
+    line-height:1.7;color:var(--text);background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+  }
+  .header{
+    background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+    color:#fff;padding:22px 20px 26px;text-align:center;
+  }
+  .header .logo{font-size:15px;font-weight:700;letter-spacing:.04em;opacity:.95;}
+  .header .badge{display:inline-block;margin-top:8px;background:rgba(255,255,255,.18);
+    border-radius:999px;padding:4px 14px;font-size:12px;}
+  .container{max-width:720px;margin:0 auto;padding:18px 14px 60px;}
+  .card{background:var(--card);border-radius:14px;box-shadow:0 1px 6px rgba(0,0,0,.06);
+    padding:20px;margin-bottom:16px;}
+  .tname{font-size:22px;font-weight:800;color:var(--text);margin-bottom:10px;word-break:break-word;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--muted);font-size:14px;}
+  .meta .item{display:flex;align-items:center;gap:5px;}
+  .game-chip{display:inline-block;background:#fbe9e1;color:var(--brand);
+    border-radius:8px;padding:2px 10px;font-size:13px;font-weight:700;}
+  h2.section{font-size:16px;font-weight:800;margin:4px 0 14px;color:var(--text);
+    display:flex;align-items:center;gap:8px;}
+  h2.section::before{content:"";width:4px;height:18px;background:var(--brand);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{padding:11px 8px;text-align:left;border-bottom:1px solid var(--line);}
+  th{color:var(--muted);font-size:12px;font-weight:700;}
+  td.rank{font-weight:800;white-space:nowrap;width:54px;}
+  td.player{font-weight:700;}
+  td.deck{color:var(--muted);}
+  td.wl{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;}
+  .medal{font-size:17px;}
+  .row-1 td{background:#fffbf0;}
+  tr.row-1 td.rank{color:var(--gold);}
+  tr.row-2 td.rank{color:#9a9aa8;}
+  tr.row-3 td.rank{color:var(--bronze);}
+  .empty,.error{text-align:center;color:var(--muted);padding:40px 16px;font-size:14px;}
+  .error{color:#c0392b;}
+  .skeleton{height:14px;background:linear-gradient(90deg,#eee,#f5f5f5,#eee);
+    background-size:200% 100%;animation:sk 1.2s infinite;border-radius:6px;margin:10px 0;}
+  @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .cta{display:block;text-align:center;background:var(--brand);color:#fff;text-decoration:none;
+    font-weight:800;padding:14px;border-radius:12px;margin-top:8px;
+    box-shadow:0 2px 8px rgba(232,93,38,.3);}
+  .cta:active{background:var(--brand-dark);}
+  .note{font-size:12px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.6;}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 16px;}
+  footer a{color:var(--brand);}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">🃏 カドスケ！</div>
+  <div class="badge">大会結果</div>
+</div>
+
+<div class="container">
+  <div class="card" id="info">
+    <div class="skeleton" style="width:70%"></div>
+    <div class="skeleton" style="width:40%"></div>
+  </div>
+
+  <div class="card">
+    <h2 class="section">順位表</h2>
+    <div id="standings">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </div>
+
+  <a class="cta" href="https://apps.apple.com/app/id6761599461" target="_blank" rel="noopener">
+    アプリ「カドスケ！」で大会を探す
+  </a>
+  <p class="note">カドスケ！は、カードゲーム大会の検索・参加・戦績管理ができるアプリです。</p>
+</div>
+
+<footer>
+  <a href="https://guerrilladcg-boop.github.io/kadosuke/privacy-policy.html">プライバシーポリシー</a>
+  &nbsp;・&nbsp;&copy; 2026 カドスケ！
+</footer>
+
+<script>
+  // Supabase 接続情報（anon key は公開可・RLS で保護）
+  // 転記元: src/lib/supabase.js
+  var SUPABASE_URL = "https://zheiyyjsbgqywesqfzqr.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_j2IOWXMCBuCogllLYAo9iA_zYseUmWZ";
+
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function fmtDate(d){
+    if(!d) return "";
+    try{
+      var dt = new Date(d);
+      if(isNaN(dt.getTime())) return esc(d);
+      return dt.getFullYear()+"年"+(dt.getMonth()+1)+"月"+dt.getDate()+"日";
+    }catch(e){ return esc(d); }
+  }
+  function getParam(name){
+    var m = new RegExp("[?&]"+name+"=([^&]*)").exec(location.search);
+    return m ? decodeURIComponent(m[1].replace(/\+/g," ")) : null;
+  }
+  function rest(path){
+    return fetch(SUPABASE_URL + "/rest/v1/" + path, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY
+      }
+    }).then(function(r){
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+  }
+  function medalFor(rank){
+    if(rank === 1) return "🥇";
+    if(rank === 2) return "🥈";
+    if(rank === 3) return "🥉";
+    return "";
+  }
+
+  var id = getParam("id");
+  var infoEl = document.getElementById("info");
+  var standEl = document.getElementById("standings");
+
+  if(!id){
+    infoEl.innerHTML = '<div class="error">大会IDが指定されていません。</div>';
+    standEl.innerHTML = "";
+  } else {
+    // 1) 大会情報
+    rest("tournaments?id=eq." + encodeURIComponent(id) +
+         "&select=id,name,game,date,organizer,location")
+      .then(function(rows){
+        if(!rows || rows.length === 0){
+          infoEl.innerHTML = '<div class="error">大会が見つかりませんでした。<br>非公開または削除された可能性があります。</div>';
+          return;
+        }
+        var t = rows[0];
+        document.title = t.name + " - 大会結果 - カドスケ！";
+        var meta = "";
+        if(t.game) meta += '<span class="item"><span class="game-chip">'+esc(t.game)+'</span></span>';
+        if(t.date) meta += '<span class="item">📅 '+fmtDate(t.date)+'</span>';
+        if(t.organizer) meta += '<span class="item">👤 主催: '+esc(t.organizer)+'</span>';
+        if(t.location) meta += '<span class="item">📍 '+esc(t.location)+'</span>';
+        infoEl.innerHTML =
+          '<div class="tname">'+esc(t.name)+'</div>' +
+          '<div class="meta">'+meta+'</div>';
+      })
+      .catch(function(){
+        infoEl.innerHTML = '<div class="error">大会情報の取得に失敗しました。</div>';
+      });
+
+    // 2) 順位表（tournament_results + profiles の表示名）
+    rest("tournament_results?tournament_id=eq." + encodeURIComponent(id) +
+         "&select=ranking,wins,losses,draws,deck_name,user_id,profiles(name)" +
+         "&order=ranking.asc.nullslast")
+      .then(function(rows){
+        if(!rows || rows.length === 0){
+          standEl.innerHTML = '<div class="empty">この大会の結果はまだ公開されていません。</div>';
+          return;
+        }
+        var html = '<table><thead><tr>' +
+          '<th>順位</th><th>プレイヤー</th><th>デッキ</th><th style="text-align:right">勝敗</th>' +
+          '</tr></thead><tbody>';
+        rows.forEach(function(r){
+          var rank = r.ranking;
+          var pname = (r.profiles && r.profiles.name) ? r.profiles.name : "プレイヤー";
+          var deck = r.deck_name || "-";
+          var wl = (r.wins||0) + "勝" + (r.losses||0) + "敗" +
+                   ((r.draws||0) > 0 ? (r.draws+"分") : "");
+          var medal = medalFor(rank);
+          var rowCls = (rank >= 1 && rank <= 3) ? (" row-" + rank) : "";
+          html += '<tr class="row'+rowCls+'">' +
+            '<td class="rank"><span class="medal">'+medal+'</span> '+(rank != null ? rank+"位" : "-")+'</td>' +
+            '<td class="player">'+esc(pname)+'</td>' +
+            '<td class="deck">'+esc(deck)+'</td>' +
+            '<td class="wl">'+esc(wl)+'</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table>';
+        standEl.innerHTML = html;
+      })
+      .catch(function(){
+        standEl.innerHTML = '<div class="empty">この大会の結果はまだ公開されていません。</div>';
+      });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プレイヤー戦績 - カドスケ！</title>
+
+<!-- OGP / SNSカード -->
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="カドスケ！">
+<meta property="og:title" content="プレイヤー戦績 - カドスケ！">
+<meta property="og:description" content="カドスケ！のプレイヤー公開戦績。大会参加数・優勝・入賞・直近の結果をチェックしよう。">
+<meta property="og:image" content="https://guerrilladcg-boop.github.io/kadosuke/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="プレイヤー戦績 - カドスケ！">
+<meta name="twitter:description" content="カドスケ！のプレイヤー公開戦績。大会参加数・優勝・入賞・直近の結果をチェックしよう。">
+<meta name="twitter:image" content="https://guerrilladcg-boop.github.io/kadosuke/ogp.png">
+
+<style>
+  :root{
+    --brand:#E85D26;
+    --brand-dark:#c44a1a;
+    --bg:#f5f3ef;
+    --card:#ffffff;
+    --text:#2b2b2b;
+    --muted:#888;
+    --line:#eee;
+    --gold:#f5b301;
+    --silver:#b7b7c2;
+    --bronze:#cd7f4d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN',Meiryo,sans-serif;
+    line-height:1.7;color:var(--text);background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+  }
+  .header{
+    background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+    color:#fff;padding:22px 20px 26px;text-align:center;
+  }
+  .header .logo{font-size:15px;font-weight:700;letter-spacing:.04em;opacity:.95;}
+  .header .badge{display:inline-block;margin-top:8px;background:rgba(255,255,255,.18);
+    border-radius:999px;padding:4px 14px;font-size:12px;}
+  .container{max-width:720px;margin:0 auto;padding:18px 14px 60px;}
+  .card{background:var(--card);border-radius:14px;box-shadow:0 1px 6px rgba(0,0,0,.06);
+    padding:20px;margin-bottom:16px;}
+  .profile-top{display:flex;align-items:center;gap:14px;}
+  .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;background:#fbe9e1;
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--brand);}
+  .pname{font-size:21px;font-weight:800;word-break:break-word;}
+  .ptag{color:var(--muted);font-size:13px;margin-top:2px;}
+  .bio{color:var(--text);font-size:14px;margin-top:12px;white-space:pre-wrap;word-break:break-word;}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px;}
+  .stat{background:#faf8f5;border-radius:10px;padding:12px 6px;text-align:center;}
+  .stat .num{font-size:22px;font-weight:800;color:var(--brand);line-height:1.2;}
+  .stat .lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+  h2.section{font-size:16px;font-weight:800;margin:4px 0 14px;color:var(--text);
+    display:flex;align-items:center;gap:8px;}
+  h2.section::before{content:"";width:4px;height:18px;background:var(--brand);border-radius:2px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{padding:11px 8px;text-align:left;border-bottom:1px solid var(--line);}
+  th{color:var(--muted);font-size:12px;font-weight:700;}
+  td.rank{font-weight:800;white-space:nowrap;width:54px;}
+  td.tname{font-weight:700;word-break:break-word;}
+  td.wl{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);}
+  .medal{font-size:16px;}
+  .empty,.error{text-align:center;color:var(--muted);padding:36px 16px;font-size:14px;}
+  .error{color:#c0392b;}
+  .private{text-align:center;padding:30px 16px;}
+  .private .icon{font-size:34px;}
+  .private .t{font-weight:800;margin-top:8px;}
+  .private .d{color:var(--muted);font-size:13px;margin-top:6px;}
+  .skeleton{height:14px;background:linear-gradient(90deg,#eee,#f5f5f5,#eee);
+    background-size:200% 100%;animation:sk 1.2s infinite;border-radius:6px;margin:10px 0;}
+  @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .cta{display:block;text-align:center;background:var(--brand);color:#fff;text-decoration:none;
+    font-weight:800;padding:14px;border-radius:12px;margin-top:8px;
+    box-shadow:0 2px 8px rgba(232,93,38,.3);}
+  .cta:active{background:var(--brand-dark);}
+  .note{font-size:12px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.6;}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 16px;}
+  footer a{color:var(--brand);}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">🃏 カドスケ！</div>
+  <div class="badge">プレイヤー戦績</div>
+</div>
+
+<div class="container">
+  <div class="card" id="profile">
+    <div class="skeleton" style="width:60%"></div>
+    <div class="skeleton" style="width:35%"></div>
+  </div>
+
+  <div class="card" id="results-card">
+    <h2 class="section">直近の戦績</h2>
+    <div id="results">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </div>
+
+  <a class="cta" href="https://apps.apple.com/app/id6761599461" target="_blank" rel="noopener">
+    アプリ「カドスケ！」で戦績をつける
+  </a>
+  <p class="note">カドスケ！は、カードゲーム大会の検索・参加・戦績管理ができるアプリです。</p>
+</div>
+
+<footer>
+  <a href="https://guerrilladcg-boop.github.io/kadosuke/privacy-policy.html">プライバシーポリシー</a>
+  &nbsp;・&nbsp;&copy; 2026 カドスケ！
+</footer>
+
+<script>
+  // Supabase 接続情報（anon key は公開可・RLS で保護）
+  // 転記元: src/lib/supabase.js
+  var SUPABASE_URL = "https://zheiyyjsbgqywesqfzqr.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_j2IOWXMCBuCogllLYAo9iA_zYseUmWZ";
+
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function fmtDate(d){
+    if(!d) return "";
+    try{
+      var dt = new Date(d);
+      if(isNaN(dt.getTime())) return esc(d);
+      return (dt.getMonth()+1)+"/"+dt.getDate()+"/"+dt.getFullYear();
+    }catch(e){ return esc(d); }
+  }
+  function getParam(name){
+    var m = new RegExp("[?&]"+name+"=([^&]*)").exec(location.search);
+    return m ? decodeURIComponent(m[1].replace(/\+/g," ")) : null;
+  }
+  function rest(path){
+    return fetch(SUPABASE_URL + "/rest/v1/" + path, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY
+      }
+    }).then(function(r){
+      if(!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+  }
+  function medalFor(rank){
+    if(rank === 1) return "🥇";
+    if(rank === 2) return "🥈";
+    if(rank === 3) return "🥉";
+    return "";
+  }
+  function showPrivate(){
+    document.getElementById("profile").innerHTML =
+      '<div class="private"><div class="icon">🔒</div>' +
+      '<div class="t">このプレイヤーの戦績は非公開です</div>' +
+      '<div class="d">公開設定にすると、戦績をWebで共有できます。</div></div>';
+    document.getElementById("results-card").style.display = "none";
+  }
+
+  var id = getParam("id");
+  var profEl = document.getElementById("profile");
+  var resEl = document.getElementById("results");
+
+  if(!id){
+    profEl.innerHTML = '<div class="error">プレイヤーIDが指定されていません。</div>';
+    document.getElementById("results-card").style.display = "none";
+  } else {
+    // 1) プロフィール（is_public=true のみ RLS で取得可能）
+    rest("profiles?id=eq." + encodeURIComponent(id) +
+         "&select=id,name,avatar_url,bio,main_deck,level,organizer_status")
+      .then(function(rows){
+        if(!rows || rows.length === 0){
+          // RLS で弾かれた（非公開）か、存在しない
+          showPrivate();
+          return null;
+        }
+        var p = rows[0];
+        document.title = (p.name || "プレイヤー") + " の戦績 - カドスケ！";
+        var avatar = p.avatar_url
+          ? '<img class="avatar" src="'+esc(p.avatar_url)+'" alt="">'
+          : '<div class="avatar">🃏</div>';
+        var tags = [];
+        if(p.organizer_status === "approved") tags.push("主催者");
+        if(p.main_deck) tags.push(esc(p.main_deck));
+        var tagLine = tags.length ? '<div class="ptag">'+tags.join(" ・ ")+'</div>' : "";
+        var bio = p.bio ? '<div class="bio">'+esc(p.bio)+'</div>' : "";
+        profEl.innerHTML =
+          '<div class="profile-top">'+avatar+
+          '<div><div class="pname">'+esc(p.name || "プレイヤー")+'</div>'+tagLine+'</div></div>'+
+          bio +
+          '<div class="stats" id="stats">' +
+            '<div class="stat"><div class="num" id="s-count">-</div><div class="lbl">参加</div></div>' +
+            '<div class="stat"><div class="num" id="s-gold">-</div><div class="lbl">🥇優勝</div></div>' +
+            '<div class="stat"><div class="num" id="s-podium">-</div><div class="lbl">入賞</div></div>' +
+            '<div class="stat"><div class="num" id="s-win">-</div><div class="lbl">勝率</div></div>' +
+          '</div>';
+        return p;
+      })
+      .then(function(p){
+        if(!p) return;
+        // 2) 戦績（results テーブル）。RLS で読めない場合は空配列扱い。
+        return rest("results?user_id=eq." + encodeURIComponent(id) +
+             "&select=tournament_name,game,rank,wins,losses,draws,deck_name,date" +
+             "&order=date.desc")
+          .then(function(rows){ return rows || []; })
+          .catch(function(){ return []; })
+          .then(function(rows){
+            // サマリー集計
+            var gold=0, podium=0, totalW=0, totalL=0;
+            rows.forEach(function(r){
+              if(r.rank === 1) gold++;
+              if(r.rank >= 1 && r.rank <= 3) podium++;
+              totalW += r.wins||0; totalL += r.losses||0;
+            });
+            var winRate = (totalW+totalL) > 0 ? Math.round(totalW/(totalW+totalL)*100)+"%" : "-";
+            var setNum = function(elId,val){ var e=document.getElementById(elId); if(e) e.textContent=val; };
+            setNum("s-count", rows.length);
+            setNum("s-gold", gold);
+            setNum("s-podium", podium);
+            setNum("s-win", winRate);
+
+            if(rows.length === 0){
+              resEl.innerHTML = '<div class="empty">公開されている戦績はまだありません。</div>';
+              return;
+            }
+            var html = '<table><thead><tr>' +
+              '<th>大会</th><th>順位</th><th style="text-align:right">勝敗</th>' +
+              '</tr></thead><tbody>';
+            rows.slice(0,10).forEach(function(r){
+              var medal = medalFor(r.rank);
+              var wl = (r.wins||0)+"勝"+(r.losses||0)+"敗"+((r.draws||0)>0?(r.draws+"分"):"");
+              html += '<tr>' +
+                '<td class="tname">'+esc(r.tournament_name)+
+                  '<div style="font-size:12px;color:var(--muted);font-weight:400">'+
+                    (r.game?esc(r.game)+' ・ ':'')+fmtDate(r.date)+'</div></td>' +
+                '<td class="rank"><span class="medal">'+medal+'</span> '+(r.rank!=null?r.rank+"位":"-")+'</td>' +
+                '<td class="wl">'+esc(wl)+'</td>' +
+                '</tr>';
+            });
+            html += '</tbody></table>';
+            resEl.innerHTML = html;
+          });
+      })
+      .catch(function(){
+        showPrivate();
+      });
+  }
+</script>
+</body>
+</html>
