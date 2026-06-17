@@ -732,8 +732,14 @@
         <div class="form-hint">入力するとユーザーがアプリ内でコピーできるようになります</div>
       </div>
       <div class="form-group">
-        <label class="form-label">管理メモ（社内用）</label>
-        <textarea id="exchangeAdminNote" placeholder="発送業者・送り状番号・備考など"></textarea>
+        <label class="form-label">ユーザーへのメッセージ（公開）</label>
+        <textarea id="exchangeUserNote" placeholder="例: 受け取りには公式サイトのアカウント連携が必要です。手順は別途メールでお送りします。"></textarea>
+        <div class="form-hint">ここに書いた内容はアプリの交換履歴詳細画面でユーザーに表示されます</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">管理メモ（社内用・非公開）</label>
+        <textarea id="exchangeAdminNote" placeholder="発送業者・送り状番号・社内連絡事項など"></textarea>
+        <div class="form-hint">ユーザーには表示されません</div>
       </div>
       <div class="btn-group" style="margin-top:14px;justify-content:flex-end;">
         <button class="btn btn-secondary" onclick="app.closeModal('exchangeModal')">閉じる</button>
@@ -1488,6 +1494,7 @@
           const deliveryType = data.delivery_type || data.sponsor_items?.delivery_type || 'digital';
           document.getElementById('exchangeStatus').value = data.status || 'pending';
           document.getElementById('exchangeAdminNote').value = data.admin_note || '';
+          document.getElementById('exchangeUserNote').value = data.user_note || '';
           document.getElementById('exchangeGiftCode').value = data.gift_code || '';
           document.getElementById('exchangeGiftCodeGroup').style.display = deliveryType === 'digital' ? '' : 'none';
 
@@ -1514,10 +1521,12 @@
         try {
           const status = document.getElementById('exchangeStatus').value;
           const adminNote = document.getElementById('exchangeAdminNote').value.trim() || null;
+          const userNote = document.getElementById('exchangeUserNote').value.trim() || null;
           const giftCode = document.getElementById('exchangeGiftCode').value.trim() || null;
           const updates = {
             status: status,
             admin_note: adminNote,
+            user_note: userNote,
             gift_code: giftCode,
           };
           if (status === 'shipped' || status === 'completed' || status === 'cancelled') {
@@ -1546,7 +1555,7 @@
 
       exportExchangesCSV() {
         const csv = [
-          ['ID', '申請日', 'ユーザー', 'メール', '商品', '種別', 'ポイント', 'ステータス', '配送名', '住所', '電話', 'ギフトコード', '管理メモ'].join(','),
+          ['ID', '申請日', 'ユーザー', 'メール', '商品', '種別', 'ポイント', 'ステータス', '配送名', '住所', '電話', 'ギフトコード', 'ユーザー向けメッセージ', '管理メモ'].join(','),
           ...this.filteredExchanges.map(ex => [
             ex.id, this.shortDate(ex.created_at),
             ex.profiles?.name || '', ex.profiles?.email || '',
@@ -1555,7 +1564,7 @@
             ex.points_spent, this.statusLabel(ex.status),
             ex.shipping_name || '',
             (ex.shipping_prefecture || '') + (ex.shipping_city || '') + (ex.shipping_address || ''),
-            ex.shipping_phone || '', ex.gift_code || '', ex.admin_note || ''
+            ex.shipping_phone || '', ex.gift_code || '', ex.user_note || '', ex.admin_note || ''
           ].map(v => `"${(v + '').replace(/"/g, '""')}"`).join(','))
         ].join('\n');
         const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -1973,13 +1982,64 @@
       },
 
       // ============ 収益・広告 ============
+      // point_ledger の reason を日本語化（未知の reason はそのまま表示）
+      ledgerReasonLabel(reason) {
+        const m = {
+          login_bonus: 'ログインボーナス',
+          login_streak: '連続ログイン',
+          daily_login: 'ログインボーナス',
+          ad: '広告視聴',
+          ad_reward: '広告視聴',
+          ad_view: '広告視聴',
+          mission: 'ミッション',
+          quest: 'ミッション',
+          referral: '紹介',
+          invite: '紹介',
+          purchase: 'pt購入',
+          point_purchase: 'pt購入',
+          exchange: '交換',
+          instant_lottery: '即時抽選',
+          instant_lottery_win: '即時抽選当選',
+          lottery_entry: '抽選応募',
+          tournament: '大会参加',
+          tournament_checkin: '大会チェックイン',
+          admin_adjust: '管理者補正',
+          admin: '管理者補正',
+          refund: '返還',
+        };
+        return m[reason] || reason || '不明';
+      },
+      // 収益タブの推定単価（画面内のみで保持、保存不要）
+      _rev: { eCpm: 0.5, ptYen: 1, premMonthly: 240, adMonthCount: 0, adAllCount: 0, purMonthPts: 0, purAllPts: 0, premCount: 0 },
+      // 入力変更時に該当の推定値だけ再計算
+      recalcRevenue() {
+        const r = this._rev;
+        const num = (id, def) => { const el = document.getElementById(id); const v = el ? parseFloat(el.value) : NaN; return isNaN(v) ? def : v; };
+        r.eCpm = num('revECpm', 0.5);
+        r.ptYen = num('revPtYen', 1);
+        r.premMonthly = num('revPremMonthly', 240);
+        const adMonthYen = Math.floor(r.adMonthCount * r.eCpm);
+        const adAllYen = Math.floor(r.adAllCount * r.eCpm);
+        const purMonthYen = Math.floor(r.purMonthPts * r.ptYen);
+        const purAllYen = Math.floor(r.purAllPts * r.ptYen);
+        const premMonthYen = Math.floor(r.premCount * r.premMonthly);
+        const totalMonthYen = adMonthYen + purMonthYen + premMonthYen;
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        set('revAdMonthYen', '¥' + this.formatPoints(adMonthYen));
+        set('revAdAllYen', '¥' + this.formatPoints(adAllYen));
+        set('revPurMonthYen', '¥' + this.formatPoints(purMonthYen));
+        set('revPurAllYen', '¥' + this.formatPoints(purAllYen));
+        set('revPremMonthYen', '¥' + this.formatPoints(premMonthYen));
+        set('revTotalMonthYen', '¥' + this.formatPoints(totalMonthYen));
+      },
       async loadRevenue() {
         const c = document.getElementById('revenueContainer');
         c.innerHTML = '<div class="alert alert-info">読み込み中...</div>';
         try {
           const todayStart = this.todayStartISO();
           const monthStart = this.monthStartISO();
-          const [adAll, adMonth, adToday, premiumCount, totalPoints, loginAll, exchangeAll] = await Promise.all([
+          const thirtyAgo = this.daysAgoISO(30);
+          const [adAll, adMonth, adToday, premiumCount, totalPoints, loginAll, exchangeAll, purAll, purMonth, ledger30] = await Promise.all([
             db.from('ad_views').select('points_earned'),
             db.from('ad_views').select('id', { count: 'exact', head: true }).gte('viewed_at', monthStart),
             db.from('ad_views').select('id', { count: 'exact', head: true }).gte('viewed_at', todayStart),
@@ -1987,26 +2047,106 @@
             db.from('profiles').select('points'),
             db.from('daily_login_bonuses').select('bonus_points'),
             db.from('point_exchanges').select('points_spent'),
+            db.from('point_purchases').select('points'),
+            db.from('point_purchases').select('points').gte('created_at', monthStart),
+            db.from('point_ledger').select('delta,reason,created_at').gte('created_at', thirtyAgo),
           ]);
           const adAllCount = adAll.data?.length || 0;
           const adAllPts = (adAll.data || []).reduce((s, v) => s + (v.points_earned || 0), 0);
           const totalPts = (totalPoints.data || []).reduce((s, p) => s + (p.points || 0), 0);
           const loginPts = (loginAll.data || []).reduce((s, v) => s + (v.bonus_points || 0), 0);
           const spentPts = (exchangeAll.data || []).reduce((s, v) => s + (v.points_spent || 0), 0);
-          const eCpm = 0.5; // 仮: 広告 1 視聴 = ¥0.5（適宜調整）
+
+          // pt購入（課金）集計
+          const purAllCount = purAll.data?.length || 0;
+          const purAllPts = (purAll.data || []).reduce((s, v) => s + (v.points || 0), 0);
+          const purMonthCount = purMonth.data?.length || 0;
+          const purMonthPts = (purMonth.data || []).reduce((s, v) => s + (v.points || 0), 0);
+
+          // ---- A. ポイント配布分析（直近30日, point_ledger をクライアント集計）----
+          const ledgerRows = ledger30.data || [];
+          let grant30 = 0, consume30 = 0;
+          const byReason = {}; // reason -> 配布合計(delta>0)
+          ledgerRows.forEach(r => {
+            const d = r.delta || 0;
+            if (d > 0) { grant30 += d; byReason[r.reason] = (byReason[r.reason] || 0) + d; }
+            else if (d < 0) { consume30 += -d; }
+          });
+          const reasonItems = Object.entries(byReason)
+            .sort((a, b) => b[1] - a[1])
+            .map(([reason, value], i) => ({ label: this.ledgerReasonLabel(reason), value, cls: ['green', 'blue', 'orange', 'purple', 'red'][i % 5] }));
+          const grantRows = ledgerRows.filter(r => (r.delta || 0) > 0); // 日別配布pt推移用
+
+          // 画面内の推定単価ステートを更新
+          this._rev.adMonthCount = adMonth.count || 0;
+          this._rev.adAllCount = adAllCount;
+          this._rev.purMonthPts = purMonthPts;
+          this._rev.purAllPts = purAllPts;
+          this._rev.premCount = premiumCount.count || 0;
+          const eCpm = this._rev.eCpm, ptYen = this._rev.ptYen, premMonthly = this._rev.premMonthly;
+          const adMonthYen = Math.floor((adMonth.count || 0) * eCpm);
+          const adAllYen = Math.floor(adAllCount * eCpm);
+          const purMonthYen = Math.floor(purMonthPts * ptYen);
+          const purAllYen = Math.floor(purAllPts * ptYen);
+          const premMonthYen = Math.floor((premiumCount.count || 0) * premMonthly);
+          const totalMonthYen = adMonthYen + purMonthYen + premMonthYen;
+
           c.innerHTML = `
-            <div class="section-title">広告</div>
+            <div class="section-title">今月の推定総収益</div>
+            <div class="stat-grid">
+              <div class="stat-card green"><div class="stat-label">今月の推定総収益（広告+pt購入+サブスク）</div><div class="stat-value" id="revTotalMonthYen">¥${this.formatPoints(totalMonthYen)}</div></div>
+            </div>
+            <div class="alert alert-info" style="font-size:12px;">※ 金額はすべて<strong>推定（概算）</strong>です。実際のAdMob/RevenueCatの確定収益はDBに無いため、視聴数・付与pt・会員数に下記の単価を掛けた目安値です。</div>
+
+            <div class="section-title">単価設定（推定用・保存されません）</div>
+            <div class="stat-grid">
+              <div class="stat-card blue"><div class="stat-label">広告 eCPM相当（円/視聴）</div><div class="stat-value"><input type="number" id="revECpm" value="${eCpm}" step="0.1" min="0" style="width:120px;font-size:20px;" oninput="app.recalcRevenue()"></div></div>
+              <div class="stat-card orange"><div class="stat-label">pt単価（円/pt）</div><div class="stat-value"><input type="number" id="revPtYen" value="${ptYen}" step="0.1" min="0" style="width:120px;font-size:20px;" oninput="app.recalcRevenue()"></div></div>
+              <div class="stat-card purple"><div class="stat-label">プレミアム月額（円/人）</div><div class="stat-value"><input type="number" id="revPremMonthly" value="${premMonthly}" step="10" min="0" style="width:120px;font-size:20px;" oninput="app.recalcRevenue()"></div></div>
+            </div>
+
+            <div class="section-title">広告収益（推定）</div>
             <div class="stat-grid">
               <div class="stat-card blue"><div class="stat-label">本日の広告視聴</div><div class="stat-value">${adToday.count || 0}</div></div>
               <div class="stat-card blue"><div class="stat-label">今月の広告視聴</div><div class="stat-value">${adMonth.count || 0}</div></div>
               <div class="stat-card blue"><div class="stat-label">累計広告視聴</div><div class="stat-value">${adAllCount}</div></div>
-              <div class="stat-card green"><div class="stat-label">今月の推定広告収益</div><div class="stat-value">¥${this.formatPoints(Math.floor((adMonth.count || 0) * eCpm))}</div></div>
+              <div class="stat-card green"><div class="stat-label">今月の広告収益（推定）</div><div class="stat-value" id="revAdMonthYen">¥${this.formatPoints(adMonthYen)}</div></div>
+              <div class="stat-card green"><div class="stat-label">累計の広告収益（推定）</div><div class="stat-value" id="revAdAllYen">¥${this.formatPoints(adAllYen)}</div></div>
             </div>
-            <div class="section-title">プレミアム</div>
+
+            <div class="section-title">pt購入（課金）</div>
+            <div class="stat-grid">
+              <div class="stat-card blue"><div class="stat-label">今月の購入件数</div><div class="stat-value">${purMonthCount}</div></div>
+              <div class="stat-card blue"><div class="stat-label">累計の購入件数</div><div class="stat-value">${purAllCount}</div></div>
+              <div class="stat-card orange"><div class="stat-label">今月の付与pt合計</div><div class="stat-value">${this.formatPoints(purMonthPts)}</div></div>
+              <div class="stat-card orange"><div class="stat-label">累計の付与pt合計</div><div class="stat-value">${this.formatPoints(purAllPts)}</div></div>
+              <div class="stat-card green"><div class="stat-label">今月のpt販売額（推定）</div><div class="stat-value" id="revPurMonthYen">¥${this.formatPoints(purMonthYen)}</div></div>
+              <div class="stat-card green"><div class="stat-label">累計のpt販売額（推定）</div><div class="stat-value" id="revPurAllYen">¥${this.formatPoints(purAllYen)}</div></div>
+            </div>
+
+            <div class="section-title">プレミアム（推定）</div>
             <div class="stat-grid">
               <div class="stat-card purple"><div class="stat-label">プレミアム会員数</div><div class="stat-value">${premiumCount.count || 0}</div></div>
+              <div class="stat-card green"><div class="stat-label">月間サブスク収益（推定）</div><div class="stat-value" id="revPremMonthYen">¥${this.formatPoints(premMonthYen)}</div></div>
             </div>
-            <div class="section-title">ポイント経済</div>
+
+            <div class="section-title">ポイント配布分析（直近30日）</div>
+            <div class="stat-grid">
+              <div class="stat-card green"><div class="stat-label">配布合計（直近30日）</div><div class="stat-value">${this.formatPoints(grant30)}</div></div>
+              <div class="stat-card red"><div class="stat-label">消費合計（直近30日）</div><div class="stat-value">${this.formatPoints(consume30)}</div></div>
+            </div>
+            <div class="chart-container">
+              <div class="chart-title">配布ポイント（直近30日・理由別）</div>
+              <div class="chart-bars" id="grantReasonChart" style="height:160px;"></div>
+              <div class="chart-x-labels" id="grantReasonLabels"></div>
+            </div>
+            <div class="chart-container">
+              <div class="chart-title">日別の配布pt推移（直近30日）</div>
+              <div class="chart-bars" id="grantDailyChart"></div>
+              <div class="chart-x-labels" id="grantDailyLabels"></div>
+            </div>
+
+            <div class="section-title">ポイント経済（累計）</div>
             <div class="stat-grid">
               <div class="stat-card green"><div class="stat-label">流通ポイント（残高合計）</div><div class="stat-value">${this.formatPoints(totalPts)}</div></div>
               <div class="stat-card blue"><div class="stat-label">広告獲得（累計）</div><div class="stat-value">${this.formatPoints(adAllPts)}</div></div>
@@ -2014,10 +2154,45 @@
               <div class="stat-card red"><div class="stat-label">消費ポイント（累計）</div><div class="stat-value">${this.formatPoints(spentPts)}</div></div>
             </div>
           `;
+          // 理由別の配布ptバー（既存ヘルパを再利用）
+          this.renderCategoryBars('grantReasonChart', 'grantReasonLabels', reasonItems.length ? reasonItems : [{ label: 'データなし', value: 0, cls: 'blue' }]);
+          // 日別の配布pt推移（delta>0 を日付で合計）
+          this.renderDailyPointBars('grantDailyChart', 'grantDailyLabels', grantRows, 'created_at', 'delta');
         } catch (e) {
           this.handleErr('収益', e);
           c.innerHTML = '<div class="alert alert-error">読み込みエラー: ' + this.escape(e.message) + '</div>';
         }
+      },
+
+      // 直近30日を1日ごとに「値(valueField)の合計」で集計してバー描画（renderDailyBars の合計版）
+      renderDailyPointBars(barId, labelId, rows, dateField, valueField) {
+        const bars = document.getElementById(barId);
+        const labels = document.getElementById(labelId);
+        if (!bars) return;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const buckets = [];
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          buckets.push({ key: d.toISOString().slice(0, 10), date: d, sum: 0 });
+        }
+        const map = Object.fromEntries(buckets.map(b => [b.key, b]));
+        rows.forEach(r => {
+          const v = r[dateField];
+          if (!v) return;
+          const k = new Date(v).toISOString().slice(0, 10);
+          if (map[k]) map[k].sum += (r[valueField] || 0);
+        });
+        const max = Math.max(1, ...buckets.map(b => b.sum));
+        bars.innerHTML = buckets.map(b => {
+          const h = (b.sum / max) * 100;
+          return '<div class="chart-bar green" style="height:' + h + '%" data-label="' + b.key + '" data-value="' + this.formatPoints(b.sum) + ' pt" onmouseover="app.tip(event)" onmouseout="app.tipOff()"></div>';
+        }).join('');
+        labels.innerHTML = buckets.filter((_, i) => i % 5 === 0 || i === buckets.length - 1).map(b => {
+          const m = b.date.getMonth() + 1, d = b.date.getDate();
+          return '<span>' + m + '/' + d + '</span>';
+        }).join('');
       },
 
       // ============ 監査ログ ============
